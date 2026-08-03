@@ -1,0 +1,25 @@
+Public Investment Analysis - repository validation record
+Recorded: 2026-08-02 (Asia/Shanghai)
+Command: python scripts/run_repo_checks.py
+
+PASS  reference links
+PASS  license and vendored fonts
+PASS  context budgets
+PASS  source coverage self-test
+PASS  showcase integrity
+PASS  artifact audit regression
+PASS  chart overlap regression
+PASS  depth exclusion regression
+PASS  report content regression
+PASS  Python syntax
+
+SUMMARY: 10 PASS / 0 FAIL
+
+Local installer recognition
+Command: npx skills add . --list
+Result: local path validated; found exactly 1 skill: public-investment-analysis
+
+This record proves the repository/package checks above, including the hashes
+and render specifications of the public showcase. The MongoDB report's separate
+model, content, depth, visual, and independent-review results are recorded in
+examples/mongodb/showcase_manifest.json.

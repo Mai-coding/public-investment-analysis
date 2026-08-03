@@ -1,0 +1,31 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Proprietary Windows fonts are never distributed. OFL fonts in this folder
+# are intentionally tracked with their license files.
+/assets/fonts/SimKai.ttf
+/assets/fonts/times.ttf
+
+# Generated research artifacts and operating-system files
+/entity_filings/
+/comp_filings/
+/output/
+/tmp/
+/charts_v1/
+~$*
+*.log
+.DS_Store
+Thumbs.db

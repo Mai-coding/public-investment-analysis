@@ -1,0 +1,33 @@
+# Examples
+
+This directory separates **copyable usage contracts** from **verified execution evidence**.
+
+## Quick-memo input contract
+
+The following is a copyable trigger, not a precomputed investment conclusion:
+
+```text
+用 public-investment-analysis 分析 MongoDB（MDB），先做中文 quick memo。
+基于最新公开文件，给出 12 个月目标价、priced-in vs. variant view、
+三项 killer risks 和六个月行动图；缺失数据不要猜。
+```
+
+A conforming quick memo should contain:
+
+1. recommendation framing, snapshot date, price target, and upside/downside;
+2. what the current price appears to discount versus the variant view;
+3. the financial and valuation bridge supporting the target;
+4. three falsifiable risks with tripwires;
+5. a six-month action map;
+6. traceable sources for factual claims and numbers;
+7. explicit disclosure of missing or stale inputs.
+
+This prompt names a public company only to demonstrate the input shape. It does not bundle a recommendation, target price, or stale market snapshot.
+
+## Verified repository evidence
+
+[`repository-check-2026-08-02.txt`](repository-check-2026-08-02.txt) records a real run of the deterministic repository check suite.
+
+## Verified full-report showcase
+
+[`mongodb/`](mongodb/README.md) contains five selected pages from a real 44-page MongoDB IC report, the reproducible showcase manifest, and the command used to rebuild the public GIF and result cards. The case passed model, content, depth, all-page visual QA, and independent review before it was admitted here.

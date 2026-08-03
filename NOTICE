@@ -1,0 +1,16 @@
+Public Investment Analysis
+Copyright 2026 Mai-coding contributors
+
+This work adapts portions of the five-stage initiating-coverage workflow from
+Anthropic Financial Services:
+https://github.com/anthropics/financial-services
+
+Anthropic Financial Services is licensed under the Apache License, Version 2.0.
+The upstream repository did not include a NOTICE file when checked on
+2026-08-02. This distribution contains substantial modifications, including
+cross-runtime instructions, public-company dilution and buyback modeling,
+source-coverage controls, document and spreadsheet audit gates, and a
+just-in-time reference-loading architecture.
+
+Anthropic PBC does not endorse this project. Anthropic and Claude are
+trademarks of their respective owner.

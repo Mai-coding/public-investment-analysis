@@ -1,0 +1,39 @@
+{
+  "case": "MongoDB (NASDAQ: MDB)",
+  "market_snapshot": "2026-07-26",
+  "report_pages": 44,
+  "body_characters": 38419,
+  "source_report": {
+    "filename": "MongoDB_IC_Report_v1_QA.pdf",
+    "sha256": "1ec63eee5072169a4e382037a25832ef995b2bf1e69b1ae42d88a02d20026a5c",
+    "distributed": false
+  },
+  "source_page_map": {
+    "cover.png": 1,
+    "competition.png": 17,
+    "valuation-sensitivity.png": 30,
+    "scenario-weights.png": 31,
+    "valuation-summary.png": 32
+  },
+  "validation": {
+    "report_content_audit": "23 PASS / 0 WARN / 0 FAIL",
+    "artifact_audit": "14 PASS / 2 WARN / 0 FAIL",
+    "depth_audit": "PASS",
+    "repository_checks": "10 PASS / 0 FAIL",
+    "independent_review": "PASS"
+  },
+  "known_non_blocking_limitation": "Repurchase cash-floor formulas require an Excel recalculation before a live investment delivery.",
+  "source_pages": {
+    "cover.png": "7cffc3f8664ad1f34d4016d8565c543662c98489c174410694d81f42a5c468b4",
+    "competition.png": "480feadcad0b299432bfba998002c55ead524fccbd4825366d1f700101f87907",
+    "valuation-sensitivity.png": "f724b0cc10e91d9cc60699c5295e6ffedfd59ccd02a7c68fcc597bbdf9e5b7b0",
+    "scenario-weights.png": "042fddd0890d5088588c6fd30cc24b6d12484f6c79c677a456c3b853f90700d9",
+    "valuation-summary.png": "dd045f348ccb0f29329640bf1d7ef92e19cd2b42cce45f31d0a11afcc41df52c"
+  },
+  "generated_assets": {
+    "mongodb-workflow.gif": "0eeb4372f79c31ae44575dc4225f18a95a015fe73c0a30d0f9a85c1e26920a0d",
+    "mongodb-showcase.png": "11c61b1d33fed69d040b82db594e0860010923666beb65bbafa65f04420363aa",
+    "mongodb-result-card.png": "876ffa94aeb1ec2c63a37e0b58a61069e2a8ae8dce9ebe7d561105ff67d1f397"
+  },
+  "rebuild": "python scripts/build_showcase.py"
+}

@@ -1,0 +1,25 @@
+{
+  "primary": {
+    "LIGHT_BLUE": "#A8DCFA",
+    "BLUE": "#2F80ED",
+    "SLATE": "#5B6573",
+    "NAVY": "#061F32"
+  },
+  "neutral": {
+    "DARK_GREY": "#5B6573",
+    "LIGHT_GREY": "#E7E6E6",
+    "PALE_GREY": "#F5F5F5",
+    "WHITE": "#FFFFFF"
+  },
+  "semantic": {
+    "ORANGE_WARN": "#E67E22",
+    "RED_CRITICAL": "#C0392B",
+    "GREEN_POSITIVE": "#27AE60"
+  },
+  "callout_backgrounds": {
+    "warning_yellow": "#FFF3CD",
+    "info_blue": "#D6EAF8",
+    "danger_red": "#FADBD8",
+    "neutral_grey": "#E7E6E6"
+  }
+}

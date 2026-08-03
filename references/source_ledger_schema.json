@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Task 1 Source Ledger",
+  "type": "object",
+  "required": ["sources"],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "issuer_or_author", "title", "document_type", "publication_date", "locator", "location", "access_or_snapshot_date", "classification"],
+        "properties": {
+          "source_id": {"type": "string"},
+          "issuer_or_author": {"type": "string"},
+          "title": {"type": "string"},
+          "document_type": {"type": "string"},
+          "publication_date": {"type": "string"},
+          "locator": {"type": "string"},
+          "location": {"type": "string", "description": "URL or local filename"},
+          "access_or_snapshot_date": {"type": "string"},
+          "classification": {"enum": ["fact", "management-claim", "user-provided-unverified", "inference-anchor", "assumption-anchor"]},
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}

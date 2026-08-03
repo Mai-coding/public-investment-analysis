@@ -1,0 +1,305 @@
+{
+  "version": 2,
+  "status_values": [
+    "pending",
+    "hit",
+    "no_hit",
+    "not_applicable",
+    "blocked"
+  ],
+  "terminal_status_values": [
+    "hit",
+    "no_hit",
+    "not_applicable",
+    "blocked"
+  ],
+  "channels": [
+    {
+      "id": "user.files",
+      "name": "用户提供文件/研报",
+      "mode": "conditional",
+      "purpose": "用户材料"
+    },
+    {
+      "id": "market.yfinance",
+      "name": "Yahoo Finance / yfinance",
+      "mode": "always",
+      "purpose": "一线市场数据与 forward P/E、P/S、收入、EPS"
+    },
+    {
+      "id": "official.website",
+      "name": "公司官网与官方材料",
+      "mode": "always",
+      "purpose": "产品、技术、新闻稿与官方披露"
+    },
+    {
+      "id": "official.ir",
+      "name": "公司 Investor Relations",
+      "mode": "always",
+      "purpose": "财报、演示稿、webcast 与 transcript"
+    },
+    {
+      "id": "filing.sec",
+      "name": "SEC EDGAR",
+      "mode": "conditional",
+      "purpose": "美股 filings"
+    },
+    {
+      "id": "filing.cninfo",
+      "name": "巨潮资讯",
+      "mode": "conditional",
+      "purpose": "A 股 filings"
+    },
+    {
+      "id": "filing.sse",
+      "name": "上海证券交易所",
+      "mode": "conditional",
+      "purpose": "上交所 filings"
+    },
+    {
+      "id": "filing.szse",
+      "name": "深圳证券交易所",
+      "mode": "conditional",
+      "purpose": "深交所 filings"
+    },
+    {
+      "id": "filing.hkex",
+      "name": "HKExnews",
+      "mode": "conditional",
+      "purpose": "港股 filings"
+    },
+    {
+      "id": "filing.esma",
+      "name": "ESMA",
+      "mode": "conditional",
+      "purpose": "欧洲监管披露"
+    },
+    {
+      "id": "transcript.aiera",
+      "name": "Aiera",
+      "mode": "fallback_only",
+      "purpose": "财报电话会 transcript"
+    },
+    {
+      "id": "transcript.motley_fool",
+      "name": "Motley Fool",
+      "mode": "fallback_only",
+      "purpose": "公开财报电话会 transcript"
+    },
+    {
+      "id": "transcript.seeking_alpha",
+      "name": "Seeking Alpha",
+      "mode": "fallback_only",
+      "purpose": "公开财报电话会 transcript"
+    },
+    {
+      "id": "priority.a16z",
+      "name": "a16z",
+      "mode": "relevance_gate",
+      "purpose": "科技趋势与技术叙事",
+      "primary_url": "https://www.a16z.news/"
+    },
+    {
+      "id": "priority.bvp_atlas",
+      "name": "Bessemer Venture Partners Atlas",
+      "mode": "relevance_gate",
+      "purpose": "云软件、AI、SaaS benchmark、投资路线图与公司建设",
+      "primary_url": "https://www.bvp.com/atlas"
+    },
+    {
+      "id": "priority.sequoia",
+      "name": "Sequoia Capital",
+      "mode": "relevance_gate",
+      "purpose": "科技趋势、投资观点、公司建设与创始人案例",
+      "primary_url": "https://sequoiacap.com/"
+    },
+    {
+      "id": "priority.first_round_review",
+      "name": "First Round Review",
+      "mode": "relevance_gate",
+      "purpose": "创业公司产品、增长、招聘、组织与运营方法论",
+      "primary_url": "https://review.firstround.com/"
+    },
+    {
+      "id": "priority.greylock_greymatter",
+      "name": "Greylock Greymatter",
+      "mode": "relevance_gate",
+      "purpose": "企业软件、AI、网络安全、创始人与运营观点",
+      "primary_url": "https://greylock.com/blog/greymatter/"
+    },
+    {
+      "id": "priority.index_perspectives",
+      "name": "Index Ventures Perspectives",
+      "mode": "relevance_gate",
+      "purpose": "全球科技趋势、市场地图、公司建设与创始人案例",
+      "primary_url": "https://www.indexventures.com/perspectives/"
+    },
+    {
+      "id": "priority.not_boring",
+      "name": "Not Boring",
+      "mode": "relevance_gate",
+      "purpose": "科技公司、商业模式、新兴赛道与长期主题",
+      "primary_url": "https://www.notboring.co/"
+    },
+    {
+      "id": "priority.stratechery",
+      "name": "Stratechery",
+      "mode": "relevance_gate",
+      "purpose": "科技与媒体公司的战略、商业模式和产业结构",
+      "primary_url": "https://stratechery.com/"
+    },
+    {
+      "id": "priority.mckinsey",
+      "name": "McKinsey Featured Insights",
+      "mode": "relevance_gate",
+      "purpose": "行业规模、价值链与宏观趋势",
+      "primary_url": "https://www.mckinsey.com/featured-insights"
+    },
+    {
+      "id": "research.bain",
+      "name": "Bain Insights",
+      "mode": "relevance_gate",
+      "purpose": "行业、战略、运营、私募股权与技术咨询研究",
+      "primary_url": "https://www.bain.com/insights/"
+    },
+    {
+      "id": "research.bcg",
+      "name": "BCG",
+      "mode": "relevance_gate",
+      "purpose": "咨询研究"
+    },
+    {
+      "id": "research.citi",
+      "name": "Citi",
+      "mode": "relevance_gate",
+      "purpose": "投行研究"
+    },
+    {
+      "id": "research.morgan_stanley",
+      "name": "Morgan Stanley",
+      "mode": "relevance_gate",
+      "purpose": "投行研究"
+    },
+    {
+      "id": "research.goldman_sachs",
+      "name": "Goldman Sachs",
+      "mode": "relevance_gate",
+      "purpose": "投行研究"
+    },
+    {
+      "id": "research.iresearch",
+      "name": "艾瑞咨询",
+      "mode": "relevance_gate",
+      "purpose": "行业研究"
+    },
+    {
+      "id": "research.idc",
+      "name": "IDC",
+      "mode": "relevance_gate",
+      "purpose": "行业研究"
+    },
+    {
+      "id": "research.gartner",
+      "name": "Gartner",
+      "mode": "relevance_gate",
+      "purpose": "行业研究"
+    },
+    {
+      "id": "research.forrester",
+      "name": "Forrester",
+      "mode": "relevance_gate",
+      "purpose": "行业研究"
+    },
+    {
+      "id": "research.36kr_research",
+      "name": "36氪研究院",
+      "mode": "relevance_gate",
+      "purpose": "行业研究"
+    },
+    {
+      "id": "research.stanford_hai_ai_index",
+      "name": "Stanford HAI AI Index",
+      "mode": "relevance_gate",
+      "purpose": "AI 技术、投资、采用、人才、政策与全球竞争的年度权威数据",
+      "primary_url": "https://hai.stanford.edu/ai-index"
+    },
+    {
+      "id": "media.ft",
+      "name": "Financial Times",
+      "mode": "relevance_gate",
+      "purpose": "行业媒体"
+    },
+    {
+      "id": "media.bloomberg",
+      "name": "Bloomberg",
+      "mode": "relevance_gate",
+      "purpose": "行业媒体"
+    },
+    {
+      "id": "media.techcrunch",
+      "name": "TechCrunch",
+      "mode": "relevance_gate",
+      "purpose": "科技媒体"
+    },
+    {
+      "id": "media.the_information",
+      "name": "The Information",
+      "mode": "relevance_gate",
+      "purpose": "科技媒体"
+    },
+    {
+      "id": "media.latepost",
+      "name": "晚点 LatePost",
+      "mode": "relevance_gate",
+      "purpose": "商业与科技媒体"
+    },
+    {
+      "id": "media.36kr",
+      "name": "36氪媒体",
+      "mode": "relevance_gate",
+      "purpose": "商业与科技媒体"
+    },
+    {
+      "id": "web.other_news_kol",
+      "name": "其他新闻与行业 KOL",
+      "mode": "conditional",
+      "purpose": "补充线索"
+    },
+    {
+      "id": "fallback.capiq",
+      "name": "S&P Capital IQ",
+      "mode": "fallback_only",
+      "purpose": "yfinance 缺失时的市场与 consensus 数据"
+    },
+    {
+      "id": "fallback.factset",
+      "name": "FactSet",
+      "mode": "fallback_only",
+      "purpose": "yfinance 缺失时的市场与 consensus 数据"
+    },
+    {
+      "id": "fallback.lseg",
+      "name": "LSEG",
+      "mode": "fallback_only",
+      "purpose": "yfinance 缺失时的市场与 consensus 数据"
+    },
+    {
+      "id": "fallback.daloopa",
+      "name": "Daloopa",
+      "mode": "fallback_only",
+      "purpose": "yfinance 缺失时的拆细基本面"
+    },
+    {
+      "id": "fallback.morningstar",
+      "name": "Morningstar",
+      "mode": "fallback_only",
+      "purpose": "独立研究与估值兜底"
+    }
+  ],
+  "mode_values": [
+    "always",
+    "conditional",
+    "fallback_only",
+    "relevance_gate"
+  ]
+}
