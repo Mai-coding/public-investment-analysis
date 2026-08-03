@@ -7,7 +7,6 @@
 > *「别让一份看起来像研报的答案，绕过模型、来源和审计就进入投委会。」*
 
 [![Agent Skill](https://img.shields.io/badge/Agent%20Skill-public--investment--analysis-6f42c1)](SKILL.md)
-[![skills.sh](https://skills.sh/b/Mai-coding/public-investment-analysis)](https://skills.sh/Mai-coding/public-investment-analysis)
 [![Repository checks](https://img.shields.io/badge/repository%20checks-10%2F10%20pass-2ea44f)](examples/repository-check-2026-08-02.txt)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
