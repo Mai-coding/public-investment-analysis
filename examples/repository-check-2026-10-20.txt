@@ -1,17 +1,24 @@
 Repository check run: 2026-10-20 (Asia/Shanghai)
 Command: python scripts/run_repo_checks.py
 Environment: Windows, Python 3.13.12
-Scope: deterministic package checks; not a new end-to-end investment report.
+Scope: deterministic package checks after Intel showcase update; not a new end-to-end investment report.
+
+Publication checks:
+PASS: five source PNGs match the selected original PDF pages pixel-for-pixel.
+PASS: a repeated preview build preserved all generated hashes.
+PASS: extra source-page, extra Intel preview and full-report sentinel files were rejected by the showcase audit, then removed.
+PASS: selected pages, all five GIF frames, overview and result card visually reviewed.
+Only original Intel PDF pages 1, 3, 23, 40 and 41 are included. No full report, model or archive is distributed.
 
 
 === reference links ===
-PASS: checked 58 active markdown/JSON files and section anchors
+PASS: checked 61 active markdown/JSON files and section anchors
 PASSED: reference links
 
 === workflow, context and handoff regression ===
 ...................
 ----------------------------------------------------------------------
-Ran 19 tests in 1.048s
+Ran 19 tests in 1.846s
 
 OK
 PASSED: workflow, context and handoff regression
@@ -73,10 +80,12 @@ PASSED: source coverage self-test
 === showcase integrity ===
 [PASS] Showcase source pages and generated assets match the recorded hashes
 [PASS] Source-report hash and page-number mapping preserve the PDF-to-page provenance chain
-[PASS] Five-frame 1200x675 GIF and validation metrics match the case record
+[PASS] Historical MongoDB five-frame 1200x675 GIF and metrics match its case record
 [PASS] Chinese and English READMEs link the real case without stale status text
 [PASS] Showcase manifest contains no private absolute path
-SUMMARY: 5 PASS / 0 FAIL
+[PASS] Intel exposes only five approved pages; source hashes and derived previews agree
+[PASS] No full report, model or archive is present in the public package
+SUMMARY: 7 PASS / 0 FAIL
 PASSED: showcase integrity
 
 === artifact audit regression ===
@@ -90,7 +99,7 @@ PASSED: model driver and format regression
 === terminal mapping regression ===
 .........
 ----------------------------------------------------------------------
-Ran 9 tests in 0.001s
+Ran 9 tests in 0.003s
 
 OK
 PASSED: terminal mapping regression
@@ -110,7 +119,7 @@ PASSED: report content regression
 === report table, TOC and image-marker regression ===
 ...................
 ----------------------------------------------------------------------
-Ran 19 tests in 3.621s
+Ran 19 tests in 3.525s
 
 OK
 PASSED: report table, TOC and image-marker regression
@@ -118,7 +127,7 @@ PASSED: report table, TOC and image-marker regression
 === DOCX layout and competition quadrant regression ===
 ..........................
 ----------------------------------------------------------------------
-Ran 26 tests in 2.837s
+Ran 26 tests in 5.622s
 
 OK
 PASSED: DOCX layout and competition quadrant regression

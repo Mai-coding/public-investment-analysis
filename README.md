@@ -22,19 +22,21 @@
 
 估值权重：可比公司 forward multiples 100%；经营延续终局、现价反推与条件验证仅作零权重参考。
 
-## 真实案例：MongoDB full report
+## 真实案例：Intel 五页精选
 
 <p align="center">
-  <img src="assets/showcase/mongodb-workflow.gif" alt="MongoDB full-report workflow showcase" width="100%">
+  <img src="assets/showcase/intel-workflow.gif" alt="Intel 报告五页精选：封面、摘要、竞争、价格区间与敏感性" width="100%">
 </p>
 
-<p align="center"><sub>真实运行回放：投资结论 → 竞争结构 → 情景与敏感性 → 概率权重 → 估值交叉验证。市场快照为 2026-07-26，不代表当前建议。</sub></p>
+<p align="center"><sub>原报告第 1、3、23、40、41 页。报告日期 2026-10-19；行情快照为 2026-10-16 收盘。展示研究工作流与交付效果，不代表当前建议。</sub></p>
 
-![MongoDB audited report overview](assets/showcase/mongodb-showcase.png)
+![Intel five-page report overview](assets/showcase/intel-showcase.png)
 
-这不是概念样稿，而是一份通过当时终稿门（Price Band 框架之前）的真实报告：**44 页、正文 38,419 字、23/23 内容门槛、14/14 模型硬门槛、10/10 仓库检查，独立验收 PASS**。完整检查记录、已知限制、源页面与生成文件哈希见 [MongoDB showcase 说明](examples/mongodb/README.md) 和 [manifest](examples/mongodb/showcase_manifest.json)。
+这份真实运行报告共 **58 页、20 张图表**，已记录模型审计 **18 PASS / 1 WARN / 0 FAIL**、内容审计 **38 PASS / 2 WARN / 0 FAIL**，以及深度和终稿复核 PASS。新版案例展示投资摘要、竞争象限、Price Band 与盈利／倍数敏感性；五页原图、原始页码、验证范围和已知限制见 [Intel 案例说明](examples/intel/README.md)，文件哈希见 [manifest](examples/intel/showcase_manifest.json)。这些是历史报告的检查记录，不等于重新验证当前投资结论。
 
-> 完整 PDF 不随仓库分发。展示页避开第三方产品架构图片，只保留本项目生成的结论、竞争、情景和估值页面；动图与结果卡可用 [showcase 构建脚本](scripts/build_showcase.py) 重建。
+> **仅公开这五页及由它们生成的展示素材。完整 PDF、DOCX 和财务模型不随仓库分发。** 精选页不含完整方法与来源附录，不能代替整份研究。可用 [Intel 展示构建脚本](scripts/build_intel_showcase.py) 重建动图、总览与结果卡。
+
+历史案例：[MongoDB 说明](examples/mongodb/README.md) · [历史动图](assets/showcase/mongodb-workflow.gif) · [manifest](examples/mongodb/showcase_manifest.json)。该案例保留旧版目标价框架，供历史对照。
 
 ---
 
@@ -163,7 +165,7 @@ python scripts/run_repo_checks.py
 
 本地安装器识别也已实跑：`npx skills add . --list` 找到且只找到 `public-investment-analysis`。
 
-首个 full-report showcase 已通过模型、内容、深度、44 页人工视觉检查和独立验收。公开页与可复现生成脚本见 [MongoDB case](examples/mongodb/README.md)；检查数字与文件哈希见 [showcase manifest](examples/mongodb/showcase_manifest.json)。
+首页 Intel 案例仅展示已批准的五页，并保留审计 WARN 与验证边界；参见 [Intel case](examples/intel/README.md) 和 [manifest](examples/intel/showcase_manifest.json)。MongoDB 作为历史案例保留。
 
 可复制的 quick-memo 输入与验收合同见 [`examples/`](examples/README.md)。
 

@@ -26,8 +26,12 @@ This prompt names a public company only to demonstrate the input shape. It does 
 
 ## Verified repository evidence
 
-[`repository-check-2026-08-02.txt`](repository-check-2026-08-02.txt) records a real run of the deterministic repository check suite.
+[`repository-check-2026-10-20.txt`](repository-check-2026-10-20.txt) records a real run of the deterministic repository check suite.
 
-## Verified full-report showcase
+## Current showcase: Intel
+
+[`intel/`](intel/README.md) exposes exactly five selected original pages (1, 3, 23, 40, 41) from the 58-page Intel report. The full report and model are not distributed. The case includes source hashes, recorded validation limits and a builder that works only from those five images.
+
+## Historical showcase: MongoDB
 
 [`mongodb/`](mongodb/README.md) contains five selected pages from a real 44-page MongoDB IC report, the reproducible showcase manifest, and the command used to rebuild the public GIF and result cards. The case passed model, content, depth, all-page visual QA, and independent review before it was admitted here.

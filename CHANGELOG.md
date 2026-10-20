@@ -1,6 +1,12 @@
 # Changelog
 
-## 2026-10-20
+## 2026-10-20: Intel showcase
+
+Promote Intel to the homepage case so the visible example matches the current Price Band framework. Publish only original PDF pages 1, 3, 23, 40 and 41 plus previews derived from them; retain MongoDB as a historical case. No full report, model or archive is included. Add a reproducible Intel preview builder and enforce the approved page hashes and publication boundary in the showcase audit.
+
+Validation: **16 PASS / 0 FAIL** after the showcase update; deterministic preview rebuild and publication-boundary negative checks passed.
+
+## 2026-10-20: Skill synchronization
 
 Sync the installed skill to the existing public repository so GitHub installs receive the current research workflow and audit tools.
 

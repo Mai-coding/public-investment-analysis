@@ -1,0 +1,46 @@
+{
+  "case": "Intel (NASDAQ: INTC)",
+  "report_date": "2026-10-19",
+  "market_snapshot": "2026-10-16",
+  "report_pages": 58,
+  "published_pages": 5,
+  "body_characters": 42896,
+  "report_charts": 20,
+  "source_report": {
+    "filename": "Intel_IC_Report_v1.pdf",
+    "sha256": "073b7af82a740da3aa9a718942d135ec29ae8ceb14ec8929a5ffbc9639e0749c",
+    "distributed": false
+  },
+  "source_page_map": {
+    "cover.png": 1,
+    "investment-summary.png": 3,
+    "competition-quadrant.png": 23,
+    "price-bands.png": 40,
+    "valuation-sensitivity.png": 41
+  },
+  "source_pages": {
+    "cover.png": "c1c087a697b37bac4cb192c3581b0dc9222531822588b713d4a1d40b48c39ade",
+    "investment-summary.png": "eb97f5f7bc7239f37c3b6b014556c97606bda56d49a225342966365a63c6d612",
+    "competition-quadrant.png": "b2763f16fc72797babf6eafbc9846bc69ab78902a5a99c8f251ef310ec4034a6",
+    "price-bands.png": "522ef4fb84422798d107fb64a7b3b0394e581cfac967f37e9f5c213492d00229",
+    "valuation-sensitivity.png": "877df4eb0ef3ebe19e355171c037e47e84ebd88e2fee5a75033c3a30273584da"
+  },
+  "generated_assets": {
+    "intel-workflow.gif": "04d0636b6d57f91b20996372e65dc4a0caa607b04d3d6ed6245d2037482624d3",
+    "intel-showcase.png": "a74215bc0af5d59afdeb9799cc0bc4a4c2a2a2e95fa041b639576c32544385bc",
+    "intel-result-card.png": "efdb113f0d2cda1ecf22701c39d7869590dc5a1505e59cce76dc0204d0e862ea"
+  },
+  "validation": {
+    "artifact_audit": "18 PASS / 1 WARN / 0 FAIL",
+    "report_content_audit": "38 PASS / 2 WARN / 0 FAIL",
+    "depth_audit": "PASS",
+    "recorded_final_review": "PASS",
+    "selected_page_pdf_pixel_comparison": "PASS"
+  },
+  "known_limits": [
+    "Native Excel desktop recalculation was not independently inspected.",
+    "Word editing-marker UI was not independently inspected; printed output and native pagination were reviewed.",
+    "The selected pages are excerpts and do not include the full methods, assumptions or Sources appendix."
+  ],
+  "rebuild": "python scripts/build_intel_showcase.py"
+}

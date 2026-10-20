@@ -22,19 +22,21 @@
 
 Valuation weights: peer-anchored forward multiples 100%; operating-continuation terminal mapping 0%; reverse pricing and evidence checks remain diagnostic.
 
-## Real case: MongoDB full report
+## Real case: Intel in five selected pages
 
 <p align="center">
-  <img src="assets/showcase/mongodb-workflow.gif" alt="MongoDB full-report workflow showcase" width="100%">
+  <img src="assets/showcase/intel-workflow.gif" alt="Intel selected report pages: cover, summary, competition, price bands and sensitivity" width="100%">
 </p>
 
-<p align="center"><sub>A real replay: investment conclusion → competitive structure → scenarios and sensitivity → probability weights → valuation cross-check. The market snapshot is 2026-07-26; this is not a current recommendation.</sub></p>
+<p align="center"><sub>Original report pages 1, 3, 23, 40 and 41. Report date: 2026-10-19; market snapshot: 2026-10-16 close. This demonstrates the research workflow and output, not a current recommendation.</sub></p>
 
-![MongoDB audited report overview](assets/showcase/mongodb-showcase.png)
+![Intel five-page report overview](assets/showcase/intel-showcase.png)
 
-This is not a mockup. The report passed the final gates in force before the Price Band framework: **44 pages, 38,419 body characters, 23/23 content gates, 14/14 model hard gates, 10/10 repository checks, and an independent PASS**. See the [MongoDB showcase record](examples/mongodb/README.md) and [manifest](examples/mongodb/showcase_manifest.json) for the source-page hashes, generated-asset hashes, gate results, and known limitation.
+The real run produced a **58-page report with 20 charts**. Its recorded checks show **18 PASS / 1 WARN / 0 FAIL** for model/artifact audit, **38 PASS / 2 WARN / 0 FAIL** for content audit, plus depth and final-review PASS. The current showcase demonstrates the investment summary, competitive positioning, Price Band framework and earnings/multiple sensitivity. See the [Intel case record](examples/intel/README.md) for readable page images, original page numbers, validation scope and known limits; see the [manifest](examples/intel/showcase_manifest.json) for hashes. These are historical report records, not a new validation of a current investment conclusion.
 
-> The complete PDF is not distributed. The selected pages avoid third-party product-architecture images and retain only project-generated conclusion, competition, scenario, and valuation pages. Rebuild the GIF and cards with the [showcase build script](scripts/build_showcase.py).
+> **Only these five pages and previews derived from them are public. The full PDF, DOCX and financial model are not distributed.** The excerpts omit the full methods and Sources appendix and cannot replace the complete research. Rebuild the GIF, overview and result card using the [Intel showcase builder](scripts/build_intel_showcase.py).
+
+Historical case: [MongoDB record](examples/mongodb/README.md) / [historical GIF](assets/showcase/mongodb-workflow.gif) / [manifest](examples/mongodb/showcase_manifest.json). It retains the earlier target-price framework for comparison.
 
 ---
 
@@ -143,7 +145,7 @@ The 2026-10-20 repository run records **16 PASS / 0 FAIL**, covering references,
 
 The local installer path was also exercised: `npx skills add . --list` found exactly one skill, `public-investment-analysis`.
 
-The first full-report showcase now passes model, content, depth, all-page visual QA, and independent review. See the [MongoDB case](examples/mongodb/README.md); the [showcase manifest](examples/mongodb/showcase_manifest.json) records the validation results and file hashes.
+The Intel homepage case exposes only the five approved pages and retains the recorded WARNs and validation limits. See the [Intel case](examples/intel/README.md) and [manifest](examples/intel/showcase_manifest.json). MongoDB remains available as a historical example.
 
 See [`examples/`](examples/README.md) for a copyable quick-memo input and acceptance contract.
 
