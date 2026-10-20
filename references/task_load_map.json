@@ -1,10 +1,9 @@
 {
-  "version": "2.1",
-  "principle": "Load only the current phase. Never preload all references.",
+  "version": "2.3",
+  "principle": "Read the current phase plus shared instructions once. Reuse unchanged reads; totals measure a reading path, not guaranteed live-context occupancy. Conditional groups are opt-in.",
   "tasks": {
     "task1": {
       "bootstrap": [
-        "00_rule_ownership.md",
         "task1-company-research.md",
         "01_source_hierarchy.md",
         "source_registry.json"
@@ -13,13 +12,16 @@
         "06_comp_analysis_workflow.md",
         "16_priority_sources.md",
         "12_long_running_tasks.md",
-        "source_ledger_schema.json"
+        "source_ledger_schema.json",
+        "17_product_images.md"
+      ],
+      "presentation": [
+        "21_report_editorial_style.md"
       ],
       "write_sections_2_9": [
         "sections/03a_research_sections_2_9.md",
         "14_depth_playbook.md",
-        "02_hv_analysis_framework.md",
-        "17_product_images.md"
+        "02_hv_analysis_framework.md"
       ],
       "conditional": {
         "technical_or_complex_value_chain": [
@@ -37,20 +39,24 @@
         "share_supply_or_disruption_sensitive": [
           "15_industry_modules.md"
         ]
-      }
+      },
+      "handoff": [
+        "handoff_schema.json"
+      ]
     },
     "task2": {
       "bootstrap": [
-        "00_rule_ownership.md",
         "task2-financial-modeling.md",
         "sections/03b_financial_section_10.md",
         "19_model_provenance_and_consistency.md",
         "12_long_running_tasks.md"
+      ],
+      "handoff": [
+        "handoff_schema.json"
       ]
     },
     "task3": {
       "bootstrap": [
-        "00_rule_ownership.md",
         "task3-valuation.md",
         "sections/03c_valuation_sections_11_12_15.md",
         "05_valuation_methodology.md",
@@ -61,37 +67,105 @@
         "comparable_set_refresh": [
           "06_comp_analysis_workflow.md"
         ]
-      }
+      },
+      "handoff": [
+        "handoff_schema.json"
+      ]
     },
     "task4": {
       "bootstrap": [
-        "00_rule_ownership.md",
         "task4-chart-creation.md",
         "04_chart_inventory.md",
-        "09_visual_style_guide.md",
-        "13_cjk_charts.md",
         "19_model_provenance_and_consistency.md",
         "20_citation_and_source_appendix.md",
         "charts_manifest_schema.json"
+      ],
+      "render": [
+        "09_visual_style_guide.md",
+        "13_cjk_charts.md",
+        "21_report_editorial_style.md"
+      ],
+      "handoff": [
+        "handoff_schema.json"
+      ],
+      "reader_qa": [
+        "10_final_checklist.md"
       ]
     },
     "task5": {
       "bootstrap": [
-        "00_rule_ownership.md",
         "task5-report-assembly.md",
         "sections/03d_final_sections_1_13_14_16_appendices.md",
-        "10_final_checklist.md",
         "19_model_provenance_and_consistency.md",
         "20_citation_and_source_appendix.md",
         "17_product_images.md"
       ],
       "conditional": {
-        "missing_section_specific_detail": [
-          "sections/03a_research_sections_2_9.md",
-          "sections/03b_financial_section_10.md",
+        "layout_or_marker_revision": [
+          "22_docx_layout.md"
+        ],
+        "missing_research_detail": [
+          "sections/03a_research_sections_2_9.md"
+        ],
+        "missing_financial_detail": [
+          "sections/03b_financial_section_10.md"
+        ],
+        "missing_valuation_detail": [
           "sections/03c_valuation_sections_11_12_15.md"
         ]
-      }
+      },
+      "presentation": [
+        "21_report_editorial_style.md"
+      ],
+      "reader_qa": [
+        "10_final_checklist.md"
+      ],
+      "handoff": [
+        "handoff_schema.json"
+      ]
+    }
+  },
+  "entrypoint": "../SKILL.md",
+  "shared": [
+    "00_rule_ownership.md",
+    "23_workflow_and_state.md"
+  ],
+  "budgets": {
+    "phase_tokens": 18000,
+    "task_tokens": 42000,
+    "route_tokens": 90000
+  },
+  "routes": {
+    "full_report": {
+      "tasks": [
+        "task1",
+        "task2",
+        "task3",
+        "task4",
+        "task5"
+      ]
+    },
+    "model_revision": {
+      "tasks": [
+        "task2",
+        "task3",
+        "task4",
+        "task5"
+      ]
+    },
+    "chart_revision": {
+      "tasks": [
+        "task4",
+        "task5"
+      ]
+    },
+    "report_layout_revision": {
+      "tasks": [
+        "task5"
+      ],
+      "conditions": [
+        "task5.layout_or_marker_revision"
+      ]
     }
   }
 }

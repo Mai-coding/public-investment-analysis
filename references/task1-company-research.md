@@ -60,6 +60,8 @@ Use the generated channel and entity tables; do not recreate channel IDs from me
 
 Select comparable companies globally based on economic similarity, not domicile alone. Identify value-chain leaders using the economically relevant denominator.
 
+Collect a genuine target-company logo for the cover under `17_product_images.md` and retain its asset path/source in the handoff. Draft reader-facing §2–9 under `21_report_editorial_style.md`; preserve full definitions and precision in backstage evidence.
+
 ### Collection order
 
 1. User-provided files.
@@ -72,36 +74,31 @@ Save raw files and parsed summaries into entity folders. Never claim a document 
 
 ### Required time-based diagnostics
 
-- **Five-call guidance evolution**: management guidance, actual result, change, explanation and credibility read-through. Write it in **§9**, beside management execution and credibility—not in §3.
+- **Five-call guidance evolution**: management guidance, actual result, change, explanation and credibility read-through. Write it in **§9**, beside management execution and credibility—not in the technical introduction.
 - **Past 12 months**: total return and evidence-backed attribution across earnings expectations, valuation multiple, policy/regulation, company events and technical/flow effects. Keep it as a Task 1 backstage diagnostic handed to Task 3 for §11.0; do not place it in §9.
 - **Next 12 months**: Bear/Base/Bull operating paths with assumptions, catalysts, risks and measurable KPIs. Valuation numbers are finalized in Task 3.
 
 ## Phase 2 — Write §2–9
 
+Read the `presentation` phase in `task_load_map.json` before drafting reader-facing prose.
+
 Load `sections/03a_research_sections_2_9.md`, `14_depth_playbook.md` and `02_hv_analysis_framework.md`. Then load only the needed recipe/module:
 
-- §3: recipes 18a/18b when the company has meaningful technical complexity.
-- §2.8: recipe 18c.
+- Technical introduction (default §2): recipes 18a/18b when the company has meaningful technical complexity.
+- Industry value chain (default §3.8): recipe 18c.
 - §5: recipe 18d.
 - §6 chart specification: recipe 18e.
 - §9 profile cards: recipe 18f.
 - Supply/share, threat timing or disruption-sensitive companies: `15_industry_modules.md` after triage.
-- Real product/asset images: **always load** `17_product_images.md` in full-report mode. Collect 2–3 auditable candidates and record them in the Task 1 handoff; this is not optional merely because §4 prose is complete.
+- Real product/asset images: read `17_product_images.md` during collection in full-report mode and reuse it during writing. Collect 2–3 auditable candidates and record them in the Task 1 handoff; this is not optional merely because §4 prose is complete.
 - Maintain an internal `source_ledger.json` conforming to `source_ledger_schema.json` with stable source IDs and full provenance for Task 5 numeric citations.
 
-Write §2 and §7 as HV narrative prose. Use evidence tables before prose, quantify qualitative claims, explain mechanisms and boundaries, and answer only 2–3 genuinely sharp questions per chapter at depth. Do not paste question headings or CEMRI labels into the report.
+Write industry history (default §3) and §7 as HV narrative prose. Use evidence tables before prose, quantify qualitative claims, explain mechanisms and boundaries, and answer only 2–3 genuinely sharp questions per chapter at depth. Do not paste question headings or CEMRI labels into the report.
 
 ## Phase 3 — Gate
 
-Run both commands and preserve their output:
-
-```text
-python scripts/source_coverage_audit.py --in <Target>_Research_Document_<date>.md
-python scripts/depth_audit.py --stage research --in <Target>_Research_Document_<date>.md [--dir <entity_filings_root>]
-```
-
-Both must PASS before full-mode Task 2–5. Respond to the audit’s named human-review sample by checking the cited chapters, not by marking them complete without inspection.
+Run the Task 1 checks in [Stage gates](23_workflow_and_state.md#stage-gates). Both machine gates and the named human-review sample must pass before full-mode Task 2–5.
 
 ## Handoff
 
-Record output paths, market snapshot date, comp/value-chain set, user questions, gate results, unresolved source gaps and inputs needed by Task 2 in an internal `handoff_task1.json` conforming to `handoff_schema.json`.
+Record output paths, market snapshot date, comp/value-chain set, user questions, gate results, unresolved source gaps and inputs needed by Task 2 in an internal `handoff_task1.json` under [Handoff and reuse](23_workflow_and_state.md#handoff-and-reuse).

@@ -1,6 +1,6 @@
 # MongoDB full-report showcase
 
-This case is a real replay of the `public-investment-analysis` full-report workflow using a **2026-07-26 market snapshot**. It is included to prove the output shape and validation discipline, not to provide a current recommendation.
+This case is a real replay of the `public-investment-analysis` full-report workflow using a **2026-07-26 market snapshot**. It is included to prove the output shape and validation discipline, not to provide a current recommendation. It predates the Price Band valuation framework, so its valuation pages show the earlier target-price format.
 
 ## What is included
 

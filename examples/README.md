@@ -8,21 +8,21 @@ The following is a copyable trigger, not a precomputed investment conclusion:
 
 ```text
 用 public-investment-analysis 分析 MongoDB（MDB），先做中文 quick memo。
-基于最新公开文件，给出 12 个月目标价、priced-in vs. variant view、
+基于最新公开文件，给出 Price Band Decision Map、3 年预期回报、priced-in vs. variant view、
 三项 killer risks 和六个月行动图；缺失数据不要猜。
 ```
 
 A conforming quick memo should contain:
 
-1. recommendation framing, snapshot date, price target, and upside/downside;
+1. snapshot date, current Price Band, 4–5 bands with actionability, and the expected 3-year return;
 2. what the current price appears to discount versus the variant view;
-3. the financial and valuation bridge supporting the target;
+3. the operating-state × valuation-regime bridge behind each band;
 4. three falsifiable risks with tripwires;
 5. a six-month action map;
 6. traceable sources for factual claims and numbers;
 7. explicit disclosure of missing or stale inputs.
 
-This prompt names a public company only to demonstrate the input shape. It does not bundle a recommendation, target price, or stale market snapshot.
+This prompt names a public company only to demonstrate the input shape. It does not bundle a recommendation, price band, or stale market snapshot.
 
 ## Verified repository evidence
 

@@ -63,6 +63,8 @@
 
 ---
 
+大型 full report 在研究前建立可检查的章节/附录计划，完成后更新状态；任务交接与停止规则见 [Handoff and reuse](23_workflow_and_state.md#handoff-and-reuse)。
+
 ## 四、长任务执行顺序
 
 批量下载 filings/字幕、十几张图、AI 图片或大型 DOCX 构建可能超过单次工具调用时限。按以下顺序处理：
@@ -110,4 +112,4 @@
 - **Task 2**：Excel 构建；按可用表格能力或 XLSX 库执行，构建后做公式、格式和联动验证。
 - **Task 3**：修改既有 Excel；先保存版本化副本并验证估值链路。
 - **Task 4**：批量出图；分批生成、逐张视觉 QA、汇总 contact sheet。
-- **Task 5**：大型 DOCX 构建；使用确定性构建脚本、结构校验、渲染检查和双闸门。
+- **Task 5**：大型 DOCX 构建；使用确定性构建脚本，按 [Stage gates](23_workflow_and_state.md#stage-gates) 完成终稿检查。

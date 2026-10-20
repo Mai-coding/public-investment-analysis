@@ -28,14 +28,20 @@ def run(label: str, *args: str) -> bool:
 def main() -> int:
     checks = [
         ("reference links", str(SCRIPTS / "reference_link_audit.py"), "--root", str(ROOT)),
+        ("workflow, context and handoff regression", str(SCRIPTS / "test_workflow_state.py")),
         ("license and vendored fonts", str(SCRIPTS / "license_audit.py")),
         ("context budgets", str(SCRIPTS / "context_budget_audit.py"), "--root", str(ROOT)),
         ("source coverage self-test", str(SCRIPTS / "source_coverage_audit.py"), "--self-test"),
         ("showcase integrity", str(SCRIPTS / "showcase_audit.py")),
         ("artifact audit regression", str(SCRIPTS / "test_artifact_audit.py")),
+        ("model driver and format regression", str(SCRIPTS / "test_model_drivers.py")),
+        ("terminal mapping regression", str(SCRIPTS / "test_terminal_multiple.py")),
         ("chart overlap regression", str(SCRIPTS / "test_chart_text_overlap.py")),
         ("depth exclusion regression", str(SCRIPTS / "test_depth_exclusion.py")),
         ("report content regression", str(SCRIPTS / "test_report_content_audit.py")),
+        ("report table, TOC and image-marker regression", str(SCRIPTS / "test_report_layout_rules.py")),
+        ("DOCX layout and competition quadrant regression", str(SCRIPTS / "test_docx_layout.py")),
+        ("report presentation regression", str(SCRIPTS / "test_report_presentation.py")),
     ]
     passed = [run(label, *args) for label, *args in checks]
 

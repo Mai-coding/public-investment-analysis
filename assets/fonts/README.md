@@ -14,6 +14,7 @@ The corresponding upstream license texts are stored beside the font binaries:
 - `OFL-Source-Serif-4.md`
 
 Do not commit `SimKai.ttf`, `times.ttf`, or other proprietary system fonts.
-The bundled fonts are the default; system fonts are fallback only. If the
-runtime cannot load either bundled font, disclose the visual deviation in the
-completion card.
+The house style is KaiTi (Chinese) + Times New Roman (Latin/numbers), loaded
+from the operating system. These bundled open fonts are the fallback when the
+system fonts are unavailable (e.g. cloud Linux sandboxes); disclose any fallback
+in the completion card.

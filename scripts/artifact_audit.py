@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import json
+import math
 import re
 import sys
 from collections import defaultdict
@@ -13,6 +15,8 @@ from typing import Iterable
 import openpyxl
 from openpyxl.utils import get_column_letter, range_boundaries
 from openpyxl.worksheet.worksheet import Worksheet
+
+from terminal_multiple import TerminalCase, central_valuation
 
 
 ERROR_TOKENS = ("#REF!", "#DIV/0!", "#VALUE!", "#N/A")
@@ -174,8 +178,10 @@ def revenue_metric_kind(value: object) -> str | None:
     low = norm(value).lower()
     if not low:
         return None
-    if "yoy" in low or "year-over-year" in low or ("growth" in low and "revenue" not in low):
+    if any(t in low for t in ('同比', '增速', '增长率')) or "yoy" in low or "year-over-year" in low or ("growth" in low and "revenue" not in low):
         return "yoy"
+    if 'share' in low or '占比' in low or 'mix %' in low:
+        return 'share'
     if any(token in low for token in ("quantity", "volume", "units", "customers", "capacity", "generation")):
         return "quantity"
     if any(token in low for token in ("price", "yield", "arpu", "asp", "rate")):
@@ -269,6 +275,14 @@ def audit_governance(wb, audit: Audit) -> None:
         audit.ok(f"Revenue Model has parseable row-level Comments for {len(rows)} visible model rows")
 
     ordered = [(row, revenue_row_kind(ws, row, metric_col)) for row in rows]
+    methods = {}
+    for index, (row, kind) in enumerate(ordered):
+        fields = parse_comment_fields(ws.cell(row, comments_col).value)
+        match = re.search(r'\bModel=(QuantityPrice|GrowthPercent|RevenueShare)\b', fields.get('basis', ''), re.I)
+        method = fields.get('model') or (match.group(1) if match else None)
+        if method:
+            methods[row] = method.lower()
+            ordered[index] = (row, 'revenue')
     for index, (row, kind) in enumerate(ordered):
         if kind is not None or index + 3 >= len(ordered):
             continue
@@ -282,19 +296,31 @@ def audit_governance(wb, audit: Audit) -> None:
     revenue_starts = [index for index, (_, kind) in enumerate(ordered) if kind == "revenue"]
     if not revenue_starts:
         audit.fail("Revenue Model: no auditable revenue-stream block found")
+    valid_blocks = 0
     for index in revenue_starts:
-        sequence = [kind for _, kind in ordered[index : index + 4]]
-        if sequence != ["revenue", "yoy", "quantity", "price"]:
-            row = ordered[index][0]
+        row = ordered[index][0]
+        method = methods.get(row)
+        expected = {'quantityprice': ['revenue', 'yoy', 'quantity', 'price'],
+                    'growthpercent': ['revenue', 'yoy'], 'revenueshare': ['revenue', 'share']}.get(method)
+        if expected is None:
+            audit.fail(f"Revenue Model!{row}: Comments must declare Model=QuantityPrice/GrowthPercent/RevenueShare")
+            continue
+        sequence = [kind for _, kind in ordered[index : index + len(expected)]]
+        if sequence != expected:
             audit.fail(
                 f"Revenue Model!{get_column_letter(metric_col)}{row}: revenue stream order must be "
-                "Revenue -> YoY growth -> Quantity -> Price / yield"
+                + ' -> '.join(expected) + f' for {method}'
             )
-    if revenue_starts and all(
-        [kind for _, kind in ordered[index : index + 4]] == ["revenue", "yoy", "quantity", "price"]
-        for index in revenue_starts
-    ):
-        audit.ok(f"Revenue Model contains {len(revenue_starts)} correctly ordered revenue-stream block(s)")
+            continue
+        if method == 'quantityprice':
+            fields = parse_comment_fields(ws.cell(row, comments_col).value)
+            disclosure = fields.get('disclosure', '')
+            if len(disclosure) < 12 or any(t in disclosure.lower() for t in ('not disclosed', 'not reported', 'unavailable')):
+                audit.fail(f"Revenue Model!{row}: QuantityPrice requires actual filing quantity/price Disclosure locators")
+                continue
+        valid_blocks += 1
+    if revenue_starts and valid_blocks == len(revenue_starts):
+        audit.ok(f"Revenue Model contains {valid_blocks} disclosure-appropriate revenue-stream block(s)")
 
 
 def audit_hardcodes_fonts_formats(wb, audit: Audit) -> None:
@@ -321,6 +347,17 @@ def audit_hardcodes_fonts_formats(wb, audit: Audit) -> None:
             audit.fail(f"Font not Arial: {len(bad_fonts) - 40} additional cells")
     else:
         audit.ok("All populated Excel cells use Arial")
+
+    profile = json.loads((Path(__file__).resolve().parents[1] / 'assets' / 'excel_model_style.json').read_text(encoding='utf-8'))
+    allowed = set(profile['font']['allowed_body_pt'])
+    for sheet in wb:
+        if sheet.sheet_view.showGridLines is not False:
+            audit.fail(f'{sheet.title}: reference model style requires hidden gridlines')
+        if sheet.title in {'Revenue Model', 'Income Statement', 'Cash Flow Statement', 'Balance Sheet', 'Scenarios'} and not sheet.freeze_panes:
+            audit.fail(f'{sheet.title}: freeze model headers/labels for navigation')
+        oversized = [c.coordinate for row in sheet for c in row if c.value is not None and c.font.sz not in allowed]
+        if oversized:
+            audit.fail(f'{sheet.title}: model font size must be 8–10 pt (first: {oversized[0]})')
     if provenance_failures:
         for item in provenance_failures[:60]:
             audit.fail(f"Blue hardcode missing row-level provenance: {item}")
@@ -500,6 +537,7 @@ def find_method_table(ws: Worksheet, audit: Audit) -> tuple[list[dict[str, objec
         mid_col = header_col(headers, "mid", "base")
         high_col = header_col(headers, "high")
         source_formula_col = header_col(headers, "source range / formula", "source range", "formula")
+        family_col = header_col(headers, "method family")
         if not all((method_col, role_col, weight_col, low_col, mid_col, high_col)):
             audit.fail(f"Valuation Summary!{header_row}: incomplete Valuation Method Manifest headers")
             return [], exact
@@ -517,6 +555,7 @@ def find_method_table(ws: Worksheet, audit: Audit) -> tuple[list[dict[str, objec
         method_col = header_col(headers, "method")
         weight_col = header_col(headers, "weight")
         role_col = None
+        family_col = None
         low_col = mid_col = high_col = None
         audit.warn("Valuation Summary uses legacy method reconciliation; new models must use exact Valuation Method Manifest schema")
     methods: list[dict[str, object]] = []
@@ -537,12 +576,15 @@ def find_method_table(ws: Worksheet, audit: Audit) -> tuple[list[dict[str, objec
             "label": label,
             "role": role,
             "weight": weight,
+            "family": norm(ws.cell(row, family_col).value) if family_col else '',
             "value_cells": [ws.cell(row, col) for col in (low_col, mid_col, high_col, source_formula_col if exact else None) if col],
         })
     return methods, exact
 
 
 def audit_valuation(wb, audit: Audit, report_text: str | None) -> None:
+    if "Comps" not in wb.sheetnames and "Valuation Summary" not in wb.sheetnames:
+        return  # Task 2 operating model; Task 3 has not added valuation yet.
     if "Comps" not in wb.sheetnames or "Valuation Summary" not in wb.sheetnames:
         audit.fail("Workbook: Comps and Valuation Summary sheets are required")
         return
@@ -596,6 +638,8 @@ def audit_valuation(wb, audit: Audit, report_text: str | None) -> None:
             audit.fail(f"Valuation Summary!A{method['row']}: Role must be Central or Diagnostic, got '{role}'")
         if role == "diagnostic" and abs(weight) > 1e-12:
             audit.fail(f"Valuation Summary!A{method['row']}: Diagnostic method '{label}' has positive weight {weight}")
+        if str(method['family']).lower() == 'terminal' and role != 'diagnostic':
+            audit.fail(f"Valuation Summary!A{method['row']}: Terminal must be Diagnostic with zero weight")
         if role == "central" and weight > 0:
             central.append(method)
         if ("full-universe" in label.lower() or "diagnostic" in label.lower()) and abs(weight) > 1e-12:
@@ -607,6 +651,12 @@ def audit_valuation(wb, audit: Audit, report_text: str | None) -> None:
         total_weight = sum(float(method["weight"]) for method in central)
         if abs(total_weight - 1.0) > 0.001:
             audit.fail(f"Valuation Summary: positive-weight Central methods sum to {total_weight:.3f}, expected 1.000")
+        for family, expected in (('Forward Comps', 1.0), ('Terminal', 0.0)):
+            actual = sum(float(m['weight']) for m in central if str(m['family']).lower() == family.lower())
+            if not math.isclose(actual, expected, abs_tol=1e-8):
+                audit.fail(f"Valuation Method Manifest: {family} Central weight must be {expected:.0%}, got {actual:.1%}")
+        if any(str(m['family']).lower() not in {'forward comps', 'terminal'} for m in central):
+            audit.fail('Valuation Method Manifest: Central methods need a valid Method Family')
     central_comp_method = any(
         any(token in str(method["label"]).lower() for token in ("comp", "peer", "median", "p/s", "p/e", "中位"))
         for method in central
@@ -763,32 +813,405 @@ def audit_financial_policies(wb, data_wb, audit: Audit) -> None:
         audit.warn("Repurchase cash-floor stress test has no cached numeric periods; recalculate workbook before delivery")
 
 
+FORWARD_METRICS = {
+    "Forward P/E": ("forward p/e", "forward pe"),
+    "Forward P/S": ("forward p/s", "forward ps"),
+    "Forward EV/EBITDA": ("forward ev/ebitda",),
+    "Forward EV/Revenue": ("forward ev/revenue", "forward ev/sales"),
+    "Forward EV/FCF": ("forward ev/fcf",),
+    "Forward FCF yield": ("forward fcf yield",),
+    "Forward P/TBV": ("forward p/tbv",),
+    "Forward P/BV": ("forward p/bv", "forward p/b "),
+    "Forward P/AFFO": ("forward p/affo",),
+    "Forward P/NAV": ("forward p/nav",),
+}
+
+
 def audit_forward_periods(wb, audit: Audit) -> None:
+    """Every sector-appropriate forward multiple must use one shared, explicit forecast year."""
     if "Valuation Summary" not in wb.sheetnames:
         return
     ws = wb["Valuation Summary"]
-    metric_years: dict[str, set[str]] = {"p/e": set(), "p/s": set()}
+    metric_years: dict[str, set[str]] = {}
     for row in range(1, ws.max_row + 1):
         row_text = " | ".join(norm(ws.cell(row, col).value) for col in range(1, ws.max_column + 1))
-        low = row_text.lower()
-        for metric, patterns in {
-            "p/e": ("forward p/e", "forward pe"),
-            "p/s": ("forward p/s", "forward ps"),
-        }.items():
+        low = row_text.lower() + " "
+        for metric, patterns in FORWARD_METRICS.items():
             if any(pattern in low for pattern in patterns):
-                metric_years[metric].update(re.findall(r"\b(20\d{2})E?\b", row_text, re.I))
-    if not metric_years["p/e"] or not metric_years["p/s"]:
-        audit.fail("Valuation Summary: Forward P/E and Forward P/S must each show an explicit forecast year")
+                metric_years.setdefault(metric, set()).update(re.findall(r"\b(20\d{2})E?\b", row_text, re.I))
+    if not metric_years and "Terminal Cases" in wb.sheetnames:
+        # The terminal-case audit owns base/observation years for new models.
         return
-    if len(metric_years["p/e"]) != 1 or len(metric_years["p/s"]) != 1:
-        audit.fail("Valuation Summary: each forward multiple must use one unambiguous forecast year")
+    if not metric_years:
+        audit.fail("Valuation Summary: no forward valuation multiple with an explicit forecast year")
         return
-    pe_year = next(iter(metric_years["p/e"]))
-    ps_year = next(iter(metric_years["p/s"]))
-    if pe_year != ps_year:
-        audit.fail(f"Valuation Summary: Forward P/E uses {pe_year} but Forward P/S uses {ps_year}")
+    missing = [metric for metric, years in metric_years.items() if not years]
+    ambiguous = [metric for metric, years in metric_years.items() if len(years) > 1]
+    if missing:
+        audit.fail("Valuation Summary: forward multiple(s) lack an explicit forecast year: " + ", ".join(missing))
+        return
+    if ambiguous:
+        audit.fail("Valuation Summary: each forward multiple must use one unambiguous forecast year: " + ", ".join(ambiguous))
+        return
+    years = {metric: next(iter(values)) for metric, values in metric_years.items()}
+    if len(set(years.values())) > 1:
+        detail = ", ".join(f"{metric}={year}" for metric, year in years.items())
+        audit.fail(f"Valuation Summary: forward multiples use mixed forecast years ({detail})")
     else:
-        audit.ok(f"Forward P/E and Forward P/S use the same explicit forecast year ({pe_year}E)")
+        audit.ok(f"{len(years)} forward multiple(s) share one explicit forecast year ({next(iter(years.values()))}E)")
+
+
+PRICE_BAND_COLUMNS = {
+    "band": ("band",),
+    "low": ("low",),
+    "high": ("high",),
+    "operating state": ("operating state",),
+    "valuation regime": ("valuation regime",),
+    "required conditions": ("required condition", "conditions"),
+    "key kpis": ("key kpi", "kpi"),
+    "driver": ("driver",),
+    "distance": ("distance",),
+    "robustness": ("robustness",),
+    "actionability": ("actionability",),
+    "evidence status": ("evidence status",),
+    "evidence ref": ("evidence ref",),
+}
+
+
+def audit_price_bands(wb, audit: Audit, data_wb=None) -> None:
+    """Price Band Map replaces the single target price as the core valuation output."""
+    if "Valuation Summary" not in wb.sheetnames:
+        return
+    ws = wb["Valuation Summary"]
+    start_failures = len(audit.failures)
+    title_row = next(
+        (row for row in range(1, ws.max_row + 1) if "price band map" in norm(ws.cell(row, 1).value).lower()),
+        None,
+    )
+    if title_row is None:
+        audit.fail("Valuation Summary: missing 'Price Band Map' (4–5 Operating State × Valuation Regime bands)")
+    else:
+        header_row = title_row + 1
+        headers = {norm(ws.cell(header_row, col).value).lower(): col for col in range(1, ws.max_column + 1)}
+        cols: dict[str, int] = {}
+        for key, aliases in PRICE_BAND_COLUMNS.items():
+            col = next((c for h, c in headers.items() if h and any(alias in h for alias in aliases)), None)
+            if col:
+                cols[key] = col
+        missing = [key for key in PRICE_BAND_COLUMNS if key not in cols]
+        if missing:
+            audit.fail(f"Valuation Summary!{header_row}: Price Band Map missing column(s): {', '.join(missing)}")
+        else:
+            bands = []
+            for row in range(header_row + 1, ws.max_row + 1):
+                label = norm(ws.cell(row, cols["band"]).value)
+                if not label:
+                    break
+                values_ws = data_wb[ws.title] if data_wb is not None else ws
+                bands.append((row, label, values_ws.cell(row, cols["low"]).value, values_ws.cell(row, cols["high"]).value))
+                distance = norm(ws.cell(row, cols["distance"]).value).lower()
+                if distance not in {"low", "medium", "high"}:
+                    audit.fail(f"Valuation Summary!{row}: Distance to Band must be Low/Medium/High, got '{distance}'")
+                robustness = norm(ws.cell(row, cols["robustness"]).value).lower()
+                if not robustness.startswith(("high", "medium", "low")):
+                    audit.fail(f"Valuation Summary!{row}: Robustness must start with High/Medium/Low")
+                for key in ("operating state", "valuation regime", "required conditions", "key kpis", "driver", "actionability", "evidence status", "evidence ref"):
+                    if not norm(ws.cell(row, cols[key]).value):
+                        audit.fail(f"Valuation Summary!{row}: band '{label}' has empty {key}")
+            if not 4 <= len(bands) <= 5:
+                audit.fail(f"Valuation Summary: Price Band Map needs 4–5 bands; found {len(bands)}")
+            numeric = [(r, lab, lo, hi) for r, lab, lo, hi in bands if isinstance(lo, (int, float)) and isinstance(hi, (int, float))]
+            formula_bounds = len(numeric) < len(bands)
+            if not formula_bounds and bands:
+                for (r1, _, lo1, hi1), (r2, _, lo2, hi2) in zip(numeric, numeric[1:]):
+                    if not (lo1 < hi1 and lo2 < hi2 and hi2 <= lo1 + 1e-9):
+                        audit.fail(f"Valuation Summary!{r1}-{r2}: bands must be ordered high→low without overlap")
+                widths = [hi - lo for _, _, lo, hi in numeric[1:-1] if hi > lo]
+                if len(widths) >= 3 and max(widths) - min(widths) <= 0.01 * max(widths):
+                    audit.fail("Valuation Summary: interior Price Bands are mechanically equal-width; set bounds at regime breaks")
+            elif formula_bounds:
+                audit.warn("Price Band bounds are formulas without cached values; recalculate to verify order/width")
+            if bands and len(audit.failures) == start_failures:
+                audit.ok(f"Price Band Map has {len(bands)} fully specified band(s)")
+
+    bridge = False
+    for row in range(1, ws.max_row + 1):
+        if "3y return bridge" in norm(ws.cell(row, 1).value).lower():
+            text = " | ".join(
+                norm(ws.cell(r, c).value).lower()
+                for r in range(row, min(ws.max_row, row + 8) + 1)
+                for c in range(1, min(ws.max_column, 6) + 1)
+            )
+            parts = ("cagr", "shareholder yield", "multiple")
+            missing_parts = [part for part in parts if part not in text]
+            if missing_parts:
+                audit.fail("3Y Return Bridge missing component(s): " + ", ".join(missing_parts))
+            bridge = True
+            if not missing_parts:
+                audit.ok("3Y Return Bridge shows per-share growth, shareholder yield and multiple change")
+            break
+    if not bridge:
+        audit.fail("Valuation Summary: missing '3Y Return Bridge'")
+
+
+def _table(ws, title: str, columns: tuple[str, ...], audit: Audit) -> list[dict] | None:
+    title_row = next((r for r in range(1, ws.max_row + 1)
+                      if norm(ws.cell(r, 1).value).lower() == title.lower()), None)
+    if title_row is None:
+        audit.fail(f"{ws.title}: missing '{title}'")
+        return None
+    header = title_row + 1
+    mapping = {norm(ws.cell(header, c).value).lower(): c for c in range(1, ws.max_column + 1)}
+    missing = [c for c in columns if c.lower() not in mapping]
+    if missing:
+        audit.fail(f"{ws.title}: {title} missing columns: {', '.join(missing)}")
+        return None
+    rows = []
+    for r in range(header + 1, ws.max_row + 1):
+        if not norm(ws.cell(r, mapping[columns[0].lower()]).value):
+            break
+        record = {c: ws.cell(r, mapping[c.lower()]).value for c in columns}
+        record['_row'] = r
+        rows.append(record)
+    if not rows:
+        audit.fail(f"{ws.title}: {title} has no data rows")
+    return rows
+
+
+def audit_terminal_mapping(wb, data_wb, audit: Audit) -> None:
+    if "Valuation Summary" not in wb.sheetnames:
+        return  # Task 2 remains usable before Task 3 adds valuation tables.
+    audit_band_bridge(wb, data_wb, audit)
+    if "Terminal Cases" not in wb.sheetnames:
+        audit.warn("Terminal reference unavailable: disclose the gap; central comps remain independently auditable")
+        return
+    columns = ("Case", "Metric", "Base Year", "Current Price", "Horizon", "Required Return", "Exit Multiple",
+               "Terminal Total", "Terminal Shares", "Distributions FV", "Supported Price", "Implied Terminal Total", "Basis",
+               "Terminal Cash", "Cash Treatment")
+    rows = _table(wb['Terminal Cases'], 'Terminal Cases', columns, audit)
+    if not rows:
+        return
+    horizons, years, prices = set(), set(), set()
+    title_row = next(r for r in range(1, wb['Terminal Cases'].max_row + 1)
+                     if norm(wb['Terminal Cases'].cell(r, 1).value).lower() == 'terminal cases')
+    headers = {norm(wb['Terminal Cases'].cell(title_row + 1, c).value): c
+               for c in range(1, wb['Terminal Cases'].max_column + 1)}
+    for row in rows:
+        name = norm(row['Case'])
+        if any(not norm(row[c]) for c in columns if c not in {'Required Return', 'Distributions FV', 'Terminal Total', 'Terminal Cash'}):
+            audit.fail(f"Terminal Cases: {name} has empty required values")
+        values = {}
+        unresolved_formula = False
+        for field in columns[2:12] + ('Terminal Cash',):
+            value = row[field]
+            if isinstance(value, str) and value.startswith('='):
+                value = data_wb['Terminal Cases'].cell(row['_row'], headers.get(field, 1)).value
+                unresolved_formula = unresolved_formula or value is None
+            values[field] = value
+        if norm(row['Metric']) not in {'P/E', 'P/S', 'P/B', 'P/TBV', 'P/AFFO', 'P/NAV'}:
+            audit.fail(f"Terminal Cases: {name} uses an unsupported equity metric")
+            continue
+        if any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) for v in values.values()):
+            if unresolved_formula:
+                audit.warn(f"Terminal Cases: {name} needs recalculation before numeric mapping can be verified")
+            else:
+                audit.fail(f"Terminal Cases: {name} has invalid numeric inputs/results")
+            continue
+        years.add(values['Base Year']); horizons.add(values['Horizon']); prices.add(values['Current Price'])
+        if int(values['Base Year']) != values['Base Year'] or not 2000 <= values['Base Year'] <= 2200:
+            audit.fail(f"Terminal Cases: {name} has invalid Base Year")
+        try:
+            case = TerminalCase(norm(row['Metric']), values['Terminal Total'], values['Terminal Shares'],
+                                values['Exit Multiple'], values['Horizon'], values['Required Return'], values['Distributions FV'],
+                                values['Terminal Cash'], norm(row['Cash Treatment']))
+            implied = case.implied_total(values['Current Price'])
+        except ValueError as exc:
+            audit.fail(f"Terminal Cases: {name}: {exc}")
+            continue
+        for field, expected in (('Supported Price', case.supported_price), ('Implied Terminal Total', implied)):
+            if not math.isclose(values[field], expected, rel_tol=1e-6, abs_tol=1e-6):
+                audit.fail(f"Terminal Cases: {name} {field} disagrees with horizon/share/distribution mapping")
+    if len(years) > 1 or len(horizons) > 1:
+        audit.fail("Terminal Cases: reference cases must share a base year and observation horizon")
+    if len(prices) > 1:
+        audit.fail("Terminal Cases: inconsistent current-price snapshots")
+
+
+def audit_band_bridge(wb, data_wb, audit: Audit) -> None:
+    bridge_columns = ('Case', 'Comps Low', 'Comps Mid', 'Comps High', 'Terminal Low', 'Terminal Mid',
+                      'Terminal High', 'Central Low', 'Central Mid', 'Central High')
+    bridges = _table(wb['Valuation Summary'], 'Band Valuation Bridge', bridge_columns, audit)
+    table_ws = wb['Valuation Summary']
+    title = next((r for r in range(1, table_ws.max_row + 1) if norm(table_ws.cell(r, 1).value).lower() == 'band valuation bridge'), None)
+    if title is None:
+        return
+    headers = {norm(table_ws.cell(title + 1, col).value): col for col in range(1, table_ws.max_column + 1)}
+    graph = formula_dependencies(wb)
+    terminal_nodes = {(table_ws.title, table_ws.cell(row['_row'], headers[f'Terminal {suffix}']).coordinate)
+                      for row in bridges or [] for suffix in ('Low', 'Mid', 'High')}
+    for row in bridges or []:
+        for suffix in ('Low', 'Mid', 'High'):
+            fields = (f'Comps {suffix}', f'Central {suffix}')
+            root = (table_ws.title, table_ws.cell(row['_row'], headers[fields[1]]).coordinate)
+            pending, seen = [root], set()
+            while pending:
+                node = pending.pop()
+                if node in seen:
+                    continue
+                seen.add(node)
+                if node[0] in {'Terminal Cases', 'Implied Expectations'} or node in terminal_nodes:
+                    audit.fail(f"Band Valuation Bridge: {row['Case']} {suffix} depends on a zero-weight terminal reference")
+                    break
+                pending.extend(graph.get(node, ()))
+            values = [data_wb[table_ws.title].cell(row['_row'], headers[field]).value for field in fields]
+            if all(isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) for x in values):
+                a, result = values
+                if a < 0 or not math.isclose(result, central_valuation(a), rel_tol=1e-6, abs_tol=1e-6):
+                    audit.fail(f"Band Valuation Bridge: {row['Case']} {suffix} must equal100% forward comps")
+            elif any(isinstance(row[field], str) and row[field].startswith('=') for field in fields) and any(x is None for x in values):
+                audit.warn(f"Band Valuation Bridge: {row['Case']} {suffix} needs recalculation to verify100% comps")
+            else:
+                audit.fail(f"Band Valuation Bridge: {row['Case']} {suffix} has invalid or missing values")
+
+
+def audit_condition_evidence(wb, audit: Audit) -> None:
+    if 'Valuation Summary' not in wb.sheetnames:
+        return
+    ws = wb['Valuation Summary']
+    conditions = _table(ws, 'Condition Evidence', ('Band', 'Condition', 'Threshold', 'Current Evidence',
+                        'Evidence Date', 'Source / Locator', 'Status', 'Decisive', 'Next Signal'), audit)
+    positions = _table(ws, 'Decision Position', ('Position', 'Band', 'Confidence', 'Rationale'), audit)
+    if conditions is None or positions is None:
+        return
+    by_band: dict[str, list[dict]] = defaultdict(list)
+    for row in conditions:
+        label = norm(row['Band']).lower()
+        by_band[label].append(row)
+        if any(not norm(row[c]) for c in row if c != '_row'):
+            audit.fail(f"Condition Evidence!{row['_row']}: incomplete condition evidence")
+        if norm(row['Status']).lower() not in {'supported', 'partial', 'unverified', 'contradicted'}:
+            audit.fail(f"Condition Evidence!{row['_row']}: invalid evidence Status")
+        if norm(row['Decisive']).lower() not in {'yes', 'no'}:
+            audit.fail(f"Condition Evidence!{row['_row']}: Decisive must be Yes/No")
+        if not re.fullmatch(r'20\d{2}-\d{2}-\d{2}', norm(row['Evidence Date'])):
+            audit.fail(f"Condition Evidence!{row['_row']}: Evidence Date must be YYYY-MM-DD")
+    positions_by_name = {norm(r['Position']).lower(): r for r in positions}
+    for key in ('market-priced band', 'evidence-supported band'):
+        row = positions_by_name.get(key)
+        if not row or any(not norm(row[c]) for c in ('Band', 'Confidence', 'Rationale')):
+            audit.fail(f"Decision Position: missing or incomplete {key}")
+        elif norm(row['Confidence']).lower() not in {'high', 'medium', 'low'}:
+            audit.fail(f"Decision Position: {key} Confidence must be High/Medium/Low")
+    supported = positions_by_name.get('evidence-supported band')
+    if supported:
+        label = norm(supported['Band']).lower()
+        if label not in {'mixed', 'unresolved'}:
+            if label not in by_band:
+                audit.fail('Decision Position: evidence-supported band lacks Condition Evidence')
+            for row in by_band.get(label, []):
+                if norm(row['Decisive']).lower() == 'yes' and norm(row['Status']).lower() == 'contradicted':
+                    audit.fail('Decision Position: evidence-supported band has a contradicted decisive condition')
+                if (norm(row['Decisive']).lower() == 'yes' and norm(row['Status']).lower() == 'unverified'
+                        and norm(supported['Confidence']).lower() == 'high'):
+                    audit.fail('Decision Position: High confidence conflicts with unverified decisive evidence')
+    band_rows = _table(ws, 'Price Band Map', ('Band', 'Evidence Status', 'Evidence Ref'), audit)
+    for row in band_rows or []:
+        if norm(row['Band']).lower() not in by_band:
+            audit.fail(f"Price Band Map: {row['Band']} lacks Condition Evidence")
+
+
+def audit_scenario_drivers(wb, audit: Audit) -> None:
+    if 'Scenarios' not in wb.sheetnames:
+        audit.fail('Missing Scenarios: select at most 5 key economic drivers')
+        return
+    ws = wb['Scenarios']
+    selector = [(ws.cell(r, c), ws.cell(r, c + 1)) for r in range(1, ws.max_row + 1)
+                for c in range(1, ws.max_column) if norm(ws.cell(r, c).value).lower() == 'case selector']
+    if len(selector) != 1 or selector[0][1].value not in {1, 2, 3}:
+        audit.fail('Scenarios: exactly one Case Selector with 1=Bear, 2=Base, 3=Bull is required')
+    drivers = _table(ws, 'Scenario Drivers', ('Driver ID', 'Driver', 'Reason', 'Active Ref',
+                     'Bear Ref', 'Base Ref', 'Bull Ref', 'Output Ref'), audit)
+    if not drivers:
+        return
+    if not 1 <= len(drivers) <= 5:
+        audit.fail(f'Scenarios: Scenario Drivers must contain 1–5 key drivers, found {len(drivers)}')
+    ids = [norm(row['Driver ID']).lower() for row in drivers]
+    if len(set(ids)) != len(ids):
+        audit.fail('Scenarios: duplicate Driver ID; register one economic driver only once')
+
+    def resolve(value):
+        ref = norm(value).lstrip('=')
+        if '!' not in ref:
+            raise ValueError('reference must identify a sheet and cell/range')
+        sheet, address = ref.rsplit('!', 1)
+        sheet = sheet.strip("'").replace("''", "'")
+        if sheet not in wb.sheetnames:
+            raise ValueError(f'unknown reference sheet {sheet}')
+        left, top, right, bottom = range_boundaries(address)
+        if (right-left+1)*(bottom-top+1) > 100:
+            raise ValueError('use a bounded forecast input range, not a whole column')
+        return wb[sheet], [wb[sheet].cell(r,c) for r in range(top,bottom+1) for c in range(left,right+1)]
+
+    def compact(text):
+        return norm(text).replace('$', '').replace("'", '').replace(' ', '').upper()
+
+    registered_active = set()
+    for row in drivers:
+        name = norm(row['Driver'])
+        if any(not norm(row[c]) for c in row if c != '_row'):
+            audit.fail(f'Scenarios: {name} has incomplete driver registration')
+            continue
+        try:
+            refs = {key: resolve(row[key]) for key in ('Active Ref','Bear Ref','Base Ref','Bull Ref','Output Ref')}
+        except (ValueError, TypeError) as exc:
+            audit.fail(f'Scenarios: {name} invalid driver reference: {exc}')
+            continue
+        active_sheet, active_cells = refs['Active Ref']
+        for cell in active_cells:
+            key = (active_sheet.title, cell.coordinate)
+            if key in registered_active:
+                audit.fail('Scenarios: one Active input cannot be registered as multiple economic drivers')
+            registered_active.add(key)
+        cases = [refs[key][1] for key in ('Bear Ref','Base Ref','Bull Ref')]
+        if any(cell.value is None for cells in cases for cell in cells):
+            audit.fail(f'Scenarios: {name} has missing case inputs')
+        if any(len(cells) != len(active_cells) for cells in cases):
+            audit.fail(f'Scenarios: {name} Active and case ranges must align')
+            continue
+        for index, active in enumerate(active_cells):
+            formula = compact(active.value)
+            if not formula.startswith('=') or not any(token in formula for token in ('CHOOSE(', 'INDEX(', 'IF(', 'OFFSET(', 'XLOOKUP(')):
+                audit.fail(f'Scenarios: {name} Active input must select assumptions, not a finished output')
+                continue
+            if len(selector) == 1:
+                control = selector[0][1].coordinate
+                if compact(control) not in formula:
+                    audit.fail(f'Scenarios: {name} Active input does not reference the Case Selector')
+            if 'CHOOSE(' in formula:
+                for case in cases:
+                    if compact(case[index].coordinate) not in formula:
+                        audit.fail(f'Scenarios: {name} Active input omits a registered case input')
+        output_sheet, output_cells = refs['Output Ref']
+        for index, target in enumerate(output_cells):
+            active = active_cells[min(index, len(active_cells)-1)]
+            expected = compact(f'{active_sheet.title}!{active.coordinate}')
+            formula = compact(target.value)
+            if not formula.startswith('=') or expected not in formula:
+                audit.fail(f'Scenarios: {name} Output Ref must consume its Active input')
+    if len(selector) == 1:
+        control = compact(selector[0][1].coordinate)
+        for sheet in wb:
+            for cells in sheet:
+                for cell in cells:
+                    formula = compact(cell.value)
+                    if not formula.startswith('=') or '"' in formula:
+                        continue  # Text-only case labels are display, not input drivers.
+                    reference = control if sheet.title == 'Scenarios' else f'SCENARIOS!{control}'
+                    selects = any(t in formula for t in ('CHOOSE(', 'INDEX(', 'IF(', 'OFFSET(', 'XLOOKUP('))
+                    if selects and re.search(re.escape(reference) + r'(?!\d)', formula) and (sheet.title,cell.coordinate) not in registered_active:
+                        audit.fail(f'{sheet.title}!{cell.coordinate}: unregistered scenario-selecting input; non-key assumptions must share the base path')
+    if not audit.failures:
+        audit.ok(f'Scenarios: {len(drivers)} registered key driver(s), one selector and linked build inputs')
 
 
 def main() -> int:
@@ -824,8 +1247,12 @@ def main() -> int:
 
     audit_governance(wb, audit)
     audit_hardcodes_fonts_formats(wb, audit)
+    audit_scenario_drivers(wb, audit)
     audit_errors_cycles_balances(wb, data_wb, audit)
     audit_valuation(wb, audit, report_text)
+    audit_price_bands(wb, audit, data_wb)
+    audit_terminal_mapping(wb, data_wb, audit)
+    audit_condition_evidence(wb, audit)
     audit_financial_policies(wb, data_wb, audit)
     audit_forward_periods(wb, audit)
     return audit.print()

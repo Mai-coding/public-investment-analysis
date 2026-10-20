@@ -1,0 +1,133 @@
+Repository check run: 2026-10-20 (Asia/Shanghai)
+Command: python scripts/run_repo_checks.py
+Environment: Windows, Python 3.13.12
+Scope: deterministic package checks; not a new end-to-end investment report.
+
+
+=== reference links ===
+PASS: checked 58 active markdown/JSON files and section anchors
+PASSED: reference links
+
+=== workflow, context and handoff regression ===
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 1.048s
+
+OK
+PASSED: workflow, context and handoff regression
+
+=== license and vendored fonts ===
+[PASS] Apache-2.0 repository license and upstream notice are present
+[PASS] Two OFL-1.1 fonts and their upstream license files match pinned hashes
+[PASS] No SimKai or Times New Roman font binary is distributed
+SUMMARY: 3 PASS / 0 FAIL
+PASSED: license and vendored fonts
+
+=== context budgets ===
+Context budgets (approximate, deduplicated reading paths)
+[PASS] task1.bootstrap: ~10,800 tokens; new ~6,425; 6 files; limit 18,000
+[PASS] task1.collection: ~13,901 tokens; new ~9,526; 8 files; limit 18,000
+[PASS] task1.presentation: ~8,169 tokens; new ~3,794; 4 files; limit 18,000
+[PASS] task1.write_sections_2_9: ~14,137 tokens; new ~9,762; 6 files; limit 18,000
+[PASS] task1.handoff: ~6,172 tokens; new ~1,797; 4 files; limit 18,000
+[PASS] task1.cumulative: ~35,679 tokens; new ~35,679; 16 files; limit 42,000
+[PASS] task1.conditional.technical_or_complex_value_chain: ~37,310 tokens; new ~1,631; 20 files; limit 42,000
+[PASS] task1.conditional.market_overview_chart: ~35,901 tokens; new ~222; 17 files; limit 42,000
+[PASS] task1.conditional.management_profile_cards: ~36,106 tokens; new ~427; 17 files; limit 42,000
+[PASS] task1.conditional.share_supply_or_disruption_sensitive: ~38,065 tokens; new ~2,386; 17 files; limit 42,000
+[PASS] task1.all_conditions: ~40,345 tokens; new ~40,345; 23 files; limit 42,000
+[PASS] task2.bootstrap: ~12,846 tokens; new ~8,471; 7 files; limit 18,000
+[PASS] task2.handoff: ~6,172 tokens; new ~1,797; 4 files; limit 18,000
+[PASS] task2.cumulative: ~14,643 tokens; new ~14,643; 8 files; limit 42,000
+[PASS] task3.bootstrap: ~17,586 tokens; new ~13,211; 8 files; limit 18,000
+[PASS] task3.handoff: ~6,172 tokens; new ~1,797; 4 files; limit 18,000
+[PASS] task3.cumulative: ~19,383 tokens; new ~19,383; 9 files; limit 42,000
+[PASS] task3.conditional.comparable_set_refresh: ~22,292 tokens; new ~2,909; 10 files; limit 42,000
+[PASS] task3.all_conditions: ~22,292 tokens; new ~22,292; 10 files; limit 42,000
+[PASS] task4.bootstrap: ~14,032 tokens; new ~9,657; 8 files; limit 18,000
+[PASS] task4.render: ~14,705 tokens; new ~10,330; 6 files; limit 18,000
+[PASS] task4.handoff: ~6,172 tokens; new ~1,797; 4 files; limit 18,000
+[PASS] task4.reader_qa: ~6,607 tokens; new ~2,232; 4 files; limit 18,000
+[PASS] task4.cumulative: ~28,391 tokens; new ~28,391; 13 files; limit 42,000
+[PASS] task5.bootstrap: ~14,654 tokens; new ~10,279; 8 files; limit 18,000
+[PASS] task5.presentation: ~8,169 tokens; new ~3,794; 4 files; limit 18,000
+[PASS] task5.reader_qa: ~6,607 tokens; new ~2,232; 4 files; limit 18,000
+[PASS] task5.handoff: ~6,172 tokens; new ~1,797; 4 files; limit 18,000
+[PASS] task5.cumulative: ~22,477 tokens; new ~22,477; 11 files; limit 42,000
+[PASS] task5.conditional.layout_or_marker_revision: ~23,549 tokens; new ~1,072; 12 files; limit 42,000
+[PASS] task5.conditional.missing_research_detail: ~27,261 tokens; new ~4,784; 12 files; limit 42,000
+[PASS] task5.conditional.missing_financial_detail: ~22,892 tokens; new ~415; 12 files; limit 42,000
+[PASS] task5.conditional.missing_valuation_detail: ~25,285 tokens; new ~2,808; 12 files; limit 42,000
+[PASS] task5.all_conditions: ~31,556 tokens; new ~31,556; 15 files; limit 42,000
+[PASS] route.full_report: ~72,386 tokens; new ~72,386; 32 files; limit 90,000
+[PASS] route.model_revision: ~50,433 tokens; new ~50,433; 23 files; limit 90,000
+[PASS] route.chart_revision: ~34,753 tokens; new ~34,753; 16 files; limit 90,000
+[PASS] route.report_layout_revision: ~23,549 tokens; new ~23,549; 12 files; limit 90,000
+SUMMARY: 0 failure(s)
+PASSED: context budgets
+
+=== source coverage self-test ===
+SELF TEST PASS
+PASSED: source coverage self-test
+
+=== showcase integrity ===
+[PASS] Showcase source pages and generated assets match the recorded hashes
+[PASS] Source-report hash and page-number mapping preserve the PDF-to-page provenance chain
+[PASS] Five-frame 1200x675 GIF and validation metrics match the case record
+[PASS] Chinese and English READMEs link the real case without stale status text
+[PASS] Showcase manifest contains no private absolute path
+SUMMARY: 5 PASS / 0 FAIL
+PASSED: showcase integrity
+
+=== artifact audit regression ===
+artifact_audit regression tests: PASS
+PASSED: artifact audit regression
+
+=== model driver and format regression ===
+MODEL DRIVER AND FORMAT TESTS: PASS (percentage/disclosed QP, 1/5/6 drivers, linkage and layout)
+PASSED: model driver and format regression
+
+=== terminal mapping regression ===
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK
+PASSED: terminal mapping regression
+
+=== chart overlap regression ===
+CHART TEXT OVERLAP TEST: PASS
+PASSED: chart overlap regression
+
+=== depth exclusion regression ===
+DEPTH EXCLUSION TEST: PASS
+PASSED: depth exclusion regression
+
+=== report content regression ===
+REPORT CONTENT AUDIT TEST: PASS
+PASSED: report content regression
+
+=== report table, TOC and image-marker regression ===
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 3.621s
+
+OK
+PASSED: report table, TOC and image-marker regression
+
+=== DOCX layout and competition quadrant regression ===
+..........................
+----------------------------------------------------------------------
+Ran 26 tests in 2.837s
+
+OK
+PASSED: DOCX layout and competition quadrant regression
+
+=== report presentation regression ===
+REPORT PRESENTATION TEST: PASS
+PASSED: report presentation regression
+
+=== Python syntax ===
+PASSED: Python syntax
+
+SUMMARY: 16 PASS / 0 FAIL

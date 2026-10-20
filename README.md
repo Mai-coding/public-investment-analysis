@@ -7,7 +7,7 @@
 > *「别让一份看起来像研报的答案，绕过模型、来源和审计就进入投委会。」*
 
 [![Agent Skill](https://img.shields.io/badge/Agent%20Skill-public--investment--analysis-6f42c1)](SKILL.md)
-[![Repository checks](https://img.shields.io/badge/repository%20checks-10%2F10%20pass-2ea44f)](examples/repository-check-2026-08-02.txt)
+[![Repository checks](https://img.shields.io/badge/repository%20checks-16%2F16%20pass-2ea44f)](examples/repository-check-2026-10-20.txt)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 **把上市公司研究拆成五个有交接、有门禁、有可见产物的阶段：研究、建模、估值、图表和 IC 报告。**
@@ -20,6 +20,8 @@
 
 <a id="showcase"></a>
 
+估值权重：可比公司 forward multiples 100%；经营延续终局、现价反推与条件验证仅作零权重参考。
+
 ## 真实案例：MongoDB full report
 
 <p align="center">
@@ -30,7 +32,7 @@
 
 ![MongoDB audited report overview](assets/showcase/mongodb-showcase.png)
 
-这不是概念样稿，而是一份通过当前终稿门的真实报告：**44 页、正文 38,419 字、23/23 内容门槛、14/14 模型硬门槛、10/10 仓库检查，独立验收 PASS**。完整检查记录、已知限制、源页面与生成文件哈希见 [MongoDB showcase 说明](examples/mongodb/README.md) 和 [manifest](examples/mongodb/showcase_manifest.json)。
+这不是概念样稿，而是一份通过当时终稿门（Price Band 框架之前）的真实报告：**44 页、正文 38,419 字、23/23 内容门槛、14/14 模型硬门槛、10/10 仓库检查，独立验收 PASS**。完整检查记录、已知限制、源页面与生成文件哈希见 [MongoDB showcase 说明](examples/mongodb/README.md) 和 [manifest](examples/mongodb/showcase_manifest.json)。
 
 > 完整 PDF 不随仓库分发。展示页避开第三方产品架构图片，只保留本项目生成的结论、竞争、情景和估值页面；动图与结果卡可用 [showcase 构建脚本](scripts/build_showcase.py) 重建。
 
@@ -42,7 +44,7 @@
 
 一个数字可能有出处，却没有进入模型；一张图可能很好看，却和估值使用了不同口径；一份 30 页报告也可能在关键假设、稀释股本或引用链上静默失败。
 
-这个 Skill 把公开公司研究变成一条受门禁约束的工作流。每个阶段读取上一阶段产物，产生明确交付物，并在失败时停止。它尤其适合需要 DCF、远期 P/E/P/S、SBC/期权稀释、回购和来源追踪的上市公司研究。
+这个 Skill 把公开公司研究变成一条受门禁约束的工作流。每个阶段读取上一阶段产物，产生明确交付物，并在失败时停止。它尤其适合需要可比公司 forward multiples 主估值（100%）、经营延续终局参考（零权重）、SBC/期权稀释、回购和来源追踪的上市公司研究。
 
 ---
 
@@ -50,13 +52,13 @@
 
 | 模式 | 交付物 | 适合场景 |
 |---|---|---|
-| Quick memo | 2–3 页决策备忘录：建议与目标价、priced-in vs. variant view、风险、tripwires、六个月行动图 | 财报前后、快速筛选、持仓复盘 |
+| Quick memo | 2–3 页决策备忘录：Price Band Decision Map 与 3 年预期回报、priced-in vs. variant view、风险、tripwires、六个月行动图 | 财报前后、快速筛选、持仓复盘 |
 | Full report | 研究底稿 + Excel 经营模型 + 估值分析 + PNG 图表 + 典型 30–40 页 IC Report DOCX | 首次覆盖、投委会、深度复盘 |
 
 完整模式按五个阶段运行：
 
 ```text
-公开来源 → 公司研究 → Excel 模型 → DCF/倍数估值 → 图表 → IC Report DOCX
+公开来源 → 公司研究 → Excel 模型 → 终局/倍数估值 → 图表 → IC Report DOCX
               PASS          PASS             PASS       PASS
 ```
 
@@ -89,7 +91,7 @@ python -m pip install -r requirements.txt
 
 ```text
 用 public-investment-analysis 分析 MongoDB（MDB），先做中文 quick memo。
-基于最新公开文件，给出 12 个月目标价、priced-in vs. variant view、三项 killer risks 和六个月行动图；缺失数据不要猜。
+基于最新公开文件，给出 Price Band Decision Map、3 年预期回报、priced-in vs. variant view、三项 killer risks 和六个月行动图；缺失数据不要猜。
 ```
 
 > 首次运行需要目标公司、行业，以及可读取的公开文件或可检索公告的 ticker。核心 Skill 不要求付费 API key；检索能力取决于所用 Agent runtime。
@@ -102,7 +104,7 @@ python -m pip install -r requirements.txt
 - “做一份 2–3 页中文 quick memo，重点看市场预期和 variant view。”
 - “对 MRVL 做完整的上市公司 IC 分析，从研究到 DOCX。”
 - “把这组 10-K、10-Q 和 earnings call 建成可审计的经营模型。”
-- “用 DCF、远期 P/E 和 P/S 交叉估值，统一到同一个预测年度。”
+- “按企业经济属性选择 P/E、P/S 或 P/B，正推终局价格区间、反推现价要求，并区分市场计入与证据支持的档位。”
 - “检查 SBC、期权、回购和 diluted shares 对每股价值的影响。”
 - “审计这份模型与报告是否存在来源、口径或引用断链。”
 
@@ -117,7 +119,7 @@ python -m pip install -r requirements.txt
 | 工作方式 | 一次生成整篇答案 | 五阶段交接，每阶段有进入条件与停止点 |
 | 预测 | 结论和数字可能分开生成 | 收入驱动 EBITDA；估值读取模型输出 |
 | 股本 | 容易只看 basic shares | 显式处理 SBC、期权、稀释股本和回购 |
-| 估值 | 方法并列但口径未必一致 | DCF + 远期 P/E/P/S，并约束预测年度一致 |
+| 估值 | 单一目标价掩盖不确定性 | 经营状态 × 估值体制 → 4–5 个 Price Band + robustness + actionability，远期倍数统一预测年度 |
 | 来源 | 链接可能只出现在正文 | 数字、快照日期、来源台账和终稿引用互相校验 |
 | 交付门槛 | “看起来完成”即可 | 机器审计 FAIL 会阻止推进或交付 |
 | 上下文 | 一次预载大量说明 | 按任务即时加载引用，减少无关上下文 |
@@ -157,7 +159,7 @@ LICENSE / NOTICE         # Apache-2.0 与上游、第三方归属
 python scripts/run_repo_checks.py
 ```
 
-当前记录为 **10 PASS / 0 FAIL**，覆盖引用完整性、许可证与字体、上下文预算、来源覆盖、showcase 哈希与渲染规格、四组回归测试和 Python 语法。可核对[运行摘要](examples/repository-check-2026-08-02.txt)。
+2026-10-20 的仓库检查为 **16 PASS / 0 FAIL**，覆盖引用、工作流交接、许可证与字体、上下文预算、来源覆盖、showcase 完整性、模型与估值、图表、报告内容与版式，以及 Python 语法。可核对[运行摘要](examples/repository-check-2026-10-20.txt)。
 
 本地安装器识别也已实跑：`npx skills add . --list` 找到且只找到 `public-investment-analysis`。
 

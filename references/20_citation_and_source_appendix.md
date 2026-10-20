@@ -26,7 +26,7 @@ Task 1 research documents, source ledgers, model Comments and chart manifests ke
 
 ## 2. Sources Appendix
 
-After all comparable-company appendices, add a new top-level chapter:
+After all comparable-company appendices and `Appendix｜Methods / 定义与方法` (owned by `21_report_editorial_style.md`), add the final top-level chapter:
 
 `Appendix｜Sources / 来源索引`
 
@@ -50,14 +50,11 @@ Rules:
 - Standalone PNGs contain no long visible source line. Full provenance is stored in `charts_manifest.json`.
 - The DOCX figure caption carries numeric superscript citation markers only.
 - Product images use the same citation system. Their DOCX alt text begins with `PRODUCT_IMAGE:` so the report audit can distinguish them from data charts.
+- Cover logo images use `COMPANY_LOGO:` alt text and the same numeric citation/source registry; a logo is not a §4 product image.
 - The required §8 revenue-mix chart uses alt text beginning with `CHART_REVENUE_MIX:`.
 
 ## 4. Mechanical gate
 
-Before final delivery run:
-
-```text
-python scripts/report_content_audit.py --report <report.docx> --charts-manifest <charts_v1/charts_manifest.json>
-```
+See [Stage gates](23_workflow_and_state.md#stage-gates) for the content audit command and final-delivery order.
 
 The audit fails on body URLs/source lines, missing or unresolved numeric citations, missing Sources Appendix, wrong guidance placement, duplicated glossary placement, missing §4 product images, missing §8 revenue-mix chart, or insufficient §9 management-profile blocks.

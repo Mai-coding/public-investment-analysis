@@ -33,6 +33,8 @@ import re
 import sys
 import zipfile
 import xml.etree.ElementTree as ET
+from section_roles import resolve_intro_roles
+from docx_structure import Structure, chapter_number
 
 # Windows 控制台默认 GBK，强制 UTF-8 以输出 ✅/❌/中文
 for _s in (sys.stdout, sys.stderr):
@@ -49,32 +51,32 @@ W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 # 这是用户主动抬高的 bar，CF 在叙事/市场章会略低于线，属预期、非 gate 回归。
 # research-stage 在 .md 上计数（含 markdown 标记）；final-stage 在 .docx 上计数（标记已剥离），
 # 同一内容 docx 比 md 少 ~3-5%，故 final §2-9 floor = research ×0.95（否则忠实装配的 docx 会假性 FAIL）。
-RESEARCH_FLOORS = {2: 3000, 3: 2400, 4: 2200, 5: 2400, 6: 1700, 7: 3200, 8: 2200, 9: 2400}
+RESEARCH_FLOORS = {2: 2400, 3: 3000, 4: 2200, 5: 2400, 6: 1700, 7: 3200, 8: 2200, 9: 2400}
 FINAL_FLOORS = {
-    1: 700, 2: 2850, 3: 2280, 4: 2090, 5: 2280, 6: 1615, 7: 3040, 8: 2090,
+    1: 700, 2: 2280, 3: 2850, 4: 2090, 5: 2280, 6: 1615, 7: 3040, 8: 2090,
     9: 2280, 10: 1000, 11: 1000, 12: 800, 13: 650, 14: 500, 15: 600, 16: 950,
 }
 APPENDIX_FLOOR = 500   # 目标 800-1,200；硬下限 500（连 gold-standard 也仅~600）
 
 # 必含 ≥1 张表的章。§6 用漏斗图；§7.1 由纯文字解读 + 竞争矩阵图承担，
 # 不再强制表格，避免正文矩阵与 chart 4 重复。图表在场由 report_content_audit.py 检查。
-TABLE_REQUIRED_FINAL = {2, 5, 8, 9, 11, 12}
-TABLE_REQUIRED_RESEARCH = {2, 5, 8, 9}
+TABLE_REQUIRED_FINAL = {3, 5, 8, 9, 11, 12}
+TABLE_REQUIRED_RESEARCH = {3, 5, 8, 9}
 
 # 必含子节（canonical 清单 = 03_section_structure；本脚本是完整性的唯一权威）
 REQUIRED_SUBS = {
-    2: ["2.1", "2.2", "2.3"], 3: ["3.0"], 4: ["4.1", "4.2", "4.3", "4.4", "4.5"],
+    4: ["4.1", "4.2", "4.3", "4.4", "4.5"],
     5: ["5.1", "5.2", "5.3"], 6: ["6.1", "6.2", "6.3"],
     7: ["7.1", "7.2", "7.4"], 8: ["8.1", "8.5", "8.6", "8.7"],
-    9: ["9.1", "9.2", "9.3", "9.7"],
+    9: ["9.1", "9.2", "9.3"],
     11: ["11.1", "11.3"], 12: ["12.1", "12.5"], 13: ["13.1"],
     15: ["15.1"], 16: ["16.1", "16.3", "16.4"],
 }
 
 CHAPTER_TITLES = {
-    1: "投资概要", 2: "行业纵向叙事", 3: "核心技术入门", 4: "产品分析",
+    1: "投资概要", 2: "核心技术入门", 3: "行业纵向叙事", 4: "产品分析",
     5: "技术分析", 6: "市场分析", 7: "竞争横向叙事", 8: "商业模式",
-    9: "团队", 10: "财务分析", 11: "估值与可比", 12: "情景分析与目标价",
+    9: "团队", 10: "财务分析", 11: "估值与可比", 12: "Price Band 与情景",
     13: "Killer Risk", 14: "Why Now/This/Us", 15: "投资判断", 16: "尽调与跟踪",
 }
 
@@ -91,21 +93,14 @@ def nlen(s):
 
 # ── DOCX 解析（按 body 文档顺序遍历 w:p / w:tbl）─────────────────────────
 def parse_docx(path):
-    with zipfile.ZipFile(path) as z:
-        xml = z.read("word/document.xml").decode("utf-8", "ignore")
-    root = ET.fromstring(xml)
-    body = root.find(f"{{{W_NS}}}body")
-    items = []  # [(kind, text)]  kind in {"p","tbl"}
-    if body is None:
-        return items
-    for el in list(body):
-        tag = el.tag.split("}")[-1]
-        if tag == "p":
-            txt = "".join(t.text or "" for t in el.iter(f"{{{W_NS}}}t"))
-            items.append(("p", txt))
-        elif tag == "tbl":
-            txt = "".join(t.text or "" for t in el.iter(f"{{{W_NS}}}t"))
-            items.append(("tbl", txt))
+    items = []
+    for block in Structure(path).blocks:
+        if block.navigation:
+            continue
+        el = block.element
+        txt = "".join(t.text or "" for t in el.iter(f"{{{W_NS}}}t"))
+        kind = "tbl" if el.tag.endswith("}tbl") else "heading" if block.heading_level is not None else "body"
+        items.append((kind, txt))
     return items
 
 
@@ -139,7 +134,7 @@ def parse_md(path):
 # ── 章节切分 ───────────────────────────────────────────────────────────
 RE_CH_PARA = re.compile(r"^§\s*(\d{1,2})\b")                 # "§7 ..."
 RE_CH_DOT = re.compile(r"^(\d{1,2})\.\s+\S")                  # "7. ..."（需句点）
-RE_SOURCE_APPX = re.compile(r"^(?:附录|Appendix)\s*(?:[｜|:：—\-]\s*)?(?:Sources?|来源索引|参考来源|Source Index)\b", re.I)
+RE_SOURCE_APPX = re.compile(r"^(?:附录|Appendix)\s*(?:[｜|:：—\-]\s*)?(?:Sources?\b|来源索引|参考来源|Source Index\b|Methods?\b|定义与方法|方法与定义|方法说明)", re.I)
 RE_APPX = re.compile(r"^(?:附录|Appendix)\s*([A-E])\b", re.I)
 RE_SUB = re.compile(r"\b(\d{1,2})\.(\d{1,2})\b")
 
@@ -170,22 +165,21 @@ def split_sections(items):
             meta = chapters.setdefault(0, {"chars": 0, "tables": 0, "text": "", "qtitles": 0})
             meta["text"] += "\n" + s
             continue
-        if kind == "p" and s:
+        if kind in {"p", "heading", "body"} and s:
             for m in RE_SUB.finditer(s):
                 subs.add(f"{int(m.group(1))}.{int(m.group(2))}")
             is_head = False
             # 静态目录(TOC)条目形如 "2. 行业纵向叙事… 5" / "附录 C… 43"，末尾带页码——
             # 会污染章节切分，必须排除（正文标题绝不以孤立页码结尾）。
             toc_like = bool(re.search(r"\s\d{1,3}\s*$", s))
-            if len(s) < 80 and not toc_like:
-                m = RE_CH_PARA.match(s) or RE_CH_DOT.match(s)
-                if m and not RE_SUB.match(s):
-                    n = int(m.group(1))
+            if kind != "body" and len(s) < 100 and (kind == "heading" or not toc_like):
+                n = chapter_number(s)
+                if n is not None:
                     if 1 <= n <= 16 and n > cur_ch:   # 单调递增，防误判
                         cur = ("ch", n); cur_ch = n; is_head = True
-                        chapters.setdefault(n, {"chars": 0, "tables": 0, "text": "", "qtitles": 0})
+                        chapters.setdefault(n, {"chars": 0, "tables": 0, "text": "", "qtitles": 0})["title"] = s
                 if not is_head and RE_SOURCE_APPX.match(s):
-                    # Unlettered source appendix is deliberately excluded from body and comp-appendix floors.
+                    # Unlettered source/methods appendix is deliberately excluded from body and comp-appendix floors.
                     cur = None; is_head = True
                 if not is_head:
                     a = RE_APPX.match(s)
@@ -210,8 +204,19 @@ def split_sections(items):
 # ── 检查 ───────────────────────────────────────────────────────────────
 def audit(chapters, appendices, subs, stage, research_dir=None, prev_total=None):
     fails, warns, lines = [], [], []
-    floors = RESEARCH_FLOORS if stage == "research" else FINAL_FLOORS
-    table_req = TABLE_REQUIRED_RESEARCH if stage == "research" else TABLE_REQUIRED_FINAL
+    floors = dict(RESEARCH_FLOORS if stage == "research" else FINAL_FLOORS)
+    table_req = set(TABLE_REQUIRED_RESEARCH if stage == "research" else TABLE_REQUIRED_FINAL)
+    roles, role_errors = resolve_intro_roles({n: c.get("title", "") for n, c in chapters.items() if n})
+    fails.extend(role_errors)
+    required_subs = dict(REQUIRED_SUBS)
+    for role, minimum in (("technical", 2400 if stage == "research" else 2280),
+                          ("history", 3000 if stage == "research" else 2850)):
+        if role in roles:
+            n = roles[role]
+            floors[n] = minimum
+            required_subs[n] = [f"{n}.{x}" for x in ([0] if role == "technical" else [1, 2, 3])]
+    if "history" in roles:
+        table_req.discard(2); table_req.discard(3); table_req.add(roles["history"])
 
     lines.append(f"{'章节':<26}{'字数':>7}{'下限':>7}{'表':>4}  判定")
     lines.append("-" * 60)
@@ -228,17 +233,19 @@ def audit(chapters, appendices, subs, stage, research_dir=None, prev_total=None)
         if c.get("qtitles", 0) > 0:
             ok = False; flags.append(f"问句标题×{c['qtitles']}")
         # 子节完整性（软警告——好报告会合并/重编号子节，不硬失败；但字数下限会兜住真漏写）
-        if n in REQUIRED_SUBS:
-            miss = [x for x in REQUIRED_SUBS[n] if x not in subs]
+        if n in required_subs:
+            miss = [x for x in required_subs[n] if x not in subs]
             if miss:
                 warns.append(f"§{n} 缺子节 {','.join(miss)}（确认是合并重编号还是真漏写）")
         # 量化密度软检（"定性词挂数字"是保留的深度实质；CEMRI 因果/反方标记检查已移除）
-        if c["chars"] >= 300:
+        # Introductory chapters are judged for readability;
+        # numeric density is not a proxy for explanatory depth there.
+        if c["chars"] >= 300 and n not in {2, 3}:
             ntok = len(RE_NUMTOKEN.findall(c["text"]))
             if ntok < c["chars"] / 150:   # 约每 150 字应有 ≥1 个数字，否则疑似空泛
                 warns.append(f"§{n} 量化密度偏低（{ntok} 个数字 / {c['chars']} 字，定性词后应挂数字）")
         tag = "✅" if ok else "❌ " + " | ".join(flags)
-        title = f"§{n} {CHAPTER_TITLES.get(n,'')}"
+        title = chapters.get(n, {}).get("title") or f"§{n} {CHAPTER_TITLES.get(n,'')}"
         lines.append(f"{title:<26}{c['chars']:>7}{floors[n]:>7}{c['tables']:>4}  {tag}")
         if not ok:
             fails.append(f"§{n} " + " | ".join(flags))
@@ -290,18 +297,18 @@ def audit(chapters, appendices, subs, stage, research_dir=None, prev_total=None)
     # 研究阶段：Task 1 硬产出物。coverage/meta 在 chapters[0]，存在但不计入字数。
     if stage == "research":
         alltext = "\n".join(c["text"] for c in chapters.values())
-        t2 = chapters.get(2, {}).get("text", "")
-        t3 = chapters.get(3, {}).get("text", "")
+        history = chapters.get(roles.get("history"), {}).get("text", "")
+        technical = chapters.get(roles.get("technical"), {}).get("text", "")
         t9 = chapters.get(9, {}).get("text", "")
         guidance_re = r"guidance\s*(?:演变|历史|兑现)|指引(?:演变|兑现|可信度)"
-        if re.search(guidance_re, t3, re.I):
-            fails.append("guidance 演变放错章节：不得放 §3，统一移至 §9")
+        if re.search(guidance_re, technical, re.I):
+            fails.append("guidance 演变不得放技术入门，统一移至 §9")
         if not re.search(guidance_re, t9, re.I):
             fails.append("§9 缺最近五次 guidance 演变与可信度分析")
-        if re.search(r"(?:行业)?术语(?:速览|表)|Glossary", t2, re.I):
-            fails.append("§2 含重复术语表；全报告唯一 Glossary 应放 §3 末尾")
-        if not re.search(r"术语表|Glossary", t3, re.I):
-            fails.append("§3 缺全报告唯一术语表")
+        if re.search(r"(?:行业)?术语(?:速览|表)|Glossary", history, re.I):
+            fails.append("历史章含重复术语表；唯一 Glossary 应放技术入门末尾")
+        if not re.search(r"术语表|Glossary", technical, re.I):
+            fails.append("技术入门缺全报告唯一术语表")
         if "渠道覆盖矩阵" not in alltext:
             fails.append("缺 渠道覆盖矩阵（先运行 source_coverage_audit.py）")
         if "研究对象覆盖矩阵" not in alltext:
@@ -333,10 +340,11 @@ def sampling_review(chapters):
         picks.append(random.choice(rest))
     out = ["", "── 抽样人工审（机器不替代，请逐条人工核）─────────────",
            "对下列每章核深度实质（自然散文，不要 CEMRI 标签/五件套）：",
-           "  □ 每个判断有硬数字（带单位/年份；完整来源留后台，最终用数字角标）",
+           "  □ 先区分介绍与分析：技术/历史介绍定义清楚、顺序自然、非专业读者能跟上，不强制每段数字/反方/交易结论",
+           "  □ 投资判断有硬数字（带单位/年份；完整来源留后台，最终用数字角标）",
            "  □ 讲清了'为什么'（因果），不是'陈述+形容词'",
            "  □ 关键处点出了风险/反面/边界",
-           "  □ 每章答了 2-3 个最尖的争议点（自然成段，不贴标签）",
+           "  □ 分析章节答了 2-3 个最尖的争议点；介绍章节讲清核心概念或历史转折（自然成段，不贴标签）",
            "  □ 市场/份额一律美元化 + 标的份额轨迹",
            "  □ §8 有收入结构图且解释 mix；§9 有 5–7 位逐人画像和 guidance 可信度",
            "  □ §16『重点研究问题』逐条直答了用户 Step 0 的问题（非仅写个标题；答不了的标'数据缺口+如何验证'）",

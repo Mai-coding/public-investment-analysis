@@ -7,7 +7,7 @@
 > *“Do not let a report-shaped answer reach an investment committee before its model, sources, and gates do.”*
 
 [![Agent Skill](https://img.shields.io/badge/Agent%20Skill-public--investment--analysis-6f42c1)](SKILL.md)
-[![Repository checks](https://img.shields.io/badge/repository%20checks-10%2F10%20pass-2ea44f)](examples/repository-check-2026-08-02.txt)
+[![Repository checks](https://img.shields.io/badge/repository%20checks-16%2F16%20pass-2ea44f)](examples/repository-check-2026-10-20.txt)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 **A gated five-stage workflow for listed-company research, modeling, valuation, charts, and IC reports.**
@@ -20,6 +20,8 @@
 
 <a id="showcase"></a>
 
+Valuation weights: peer-anchored forward multiples 100%; operating-continuation terminal mapping 0%; reverse pricing and evidence checks remain diagnostic.
+
 ## Real case: MongoDB full report
 
 <p align="center">
@@ -30,7 +32,7 @@
 
 ![MongoDB audited report overview](assets/showcase/mongodb-showcase.png)
 
-This is not a mockup. The report passed the current final gates: **44 pages, 38,419 body characters, 23/23 content gates, 14/14 model hard gates, 10/10 repository checks, and an independent PASS**. See the [MongoDB showcase record](examples/mongodb/README.md) and [manifest](examples/mongodb/showcase_manifest.json) for the source-page hashes, generated-asset hashes, gate results, and known limitation.
+This is not a mockup. The report passed the final gates in force before the Price Band framework: **44 pages, 38,419 body characters, 23/23 content gates, 14/14 model hard gates, 10/10 repository checks, and an independent PASS**. See the [MongoDB showcase record](examples/mongodb/README.md) and [manifest](examples/mongodb/showcase_manifest.json) for the source-page hashes, generated-asset hashes, gate results, and known limitation.
 
 > The complete PDF is not distributed. The selected pages avoid third-party product-architecture images and retain only project-generated conclusion, competition, scenario, and valuation pages. Rebuild the GIF and cards with the [showcase build script](scripts/build_showcase.py).
 
@@ -40,17 +42,17 @@ This is not a mockup. The report passed the current final gates: **44 pages, 38,
 
 Asking an agent to “analyze this stock” is easy. Proving that its sources, forecasts, valuation, charts, and conclusion use the same facts is much harder.
 
-Public Investment Analysis turns listed-company research into a gated workflow. Each stage consumes prior outputs, creates a defined artifact, and stops on failure. It is designed for work that needs DCF, forward P/E and P/S, public-company dilution, buybacks, and traceable evidence—not just a plausible narrative.
+Public Investment Analysis turns listed-company research into a gated workflow. Each stage consumes prior outputs, creates a defined artifact, and stops on failure. It is designed for work that needs peer-anchored forward multiples (100%) and zero-weight operating-continuation terminal references, public-company dilution, buybacks, and traceable evidence—not just a plausible narrative.
 
 ## What it delivers
 
 | Mode | Deliverables | Typical use |
 |---|---|---|
-| Quick memo | A 2–3 page decision memo with recommendation and target, priced-in vs. variant view, risks, tripwires, and a six-month action map | Screening, earnings updates, position reviews |
+| Quick memo | A 2–3 page decision memo with a Price Band Decision Map and 3-year expected return, priced-in vs. variant view, risks, tripwires, and a six-month action map | Screening, earnings updates, position reviews |
 | Full report | Research document, Excel operating model, valuation analysis, PNG charts, and a typically 30–40 page IC Report DOCX | Initiation, investment committee, deep review |
 
 ```text
-public sources → research → Excel model → DCF/multiples → charts → IC Report DOCX
+public sources → research → Excel model → terminal cases/multiples → charts → IC Report DOCX
                    PASS         PASS            PASS       PASS
 ```
 
@@ -81,7 +83,7 @@ First prompt:
 
 ```text
 Use public-investment-analysis to prepare a Chinese quick memo on MongoDB (MDB).
-Use current public filings, show a 12-month target, priced-in vs. variant view,
+Use current public filings, show the Price Band Decision Map and 3Y return, priced-in vs. variant view,
 three killer risks, and a six-month action map. Do not guess missing data.
 ```
 
@@ -92,7 +94,7 @@ The first run needs a target company, sector, and either source documents or a t
 - “Give me a 2–3 page quick decision memo on MDB.”
 - “Run a full listed-company IC workflow on MRVL, from research through DOCX.”
 - “Turn these 10-Ks, 10-Qs, and earnings calls into an auditable operating model.”
-- “Cross-check DCF, forward P/E, and P/S on the same forecast year.”
+- “Map each price band to an operating state and valuation regime using suitable peer multiples, zero-weight terminal references and explicit evidence adjudication.”
 - “Audit how SBC, options, diluted shares, and buybacks affect per-share value.”
 - “Check this model and report for source, period, and citation breaks.”
 
@@ -105,7 +107,7 @@ It is not intended for private-round modeling, venture-stage MOIC/IRR, trade exe
 | Workflow | One generated response | Five staged handoffs with entry and stop conditions |
 | Forecasts | Narrative and numbers may diverge | Revenue drives EBITDA; valuation reads model outputs |
 | Share count | Often stops at basic shares | Models SBC, options, dilution, and repurchases |
-| Valuation | Methods may use inconsistent periods | DCF plus forward P/E/P/S with a shared forecast-year rule |
+| Valuation | A single target price hides uncertainty | Operating state × valuation regime → 4–5 Price Bands with robustness and actionability; one shared forecast year |
 | Evidence | Links may be decorative | Numbers, snapshot dates, source ledger, and final citations are checked |
 | Completion | A polished document may appear done | Machine-audit failures block progression and delivery |
 | Context | Loads a large instruction bundle | Loads task-specific references just in time |
@@ -137,7 +139,7 @@ LICENSE / NOTICE         # Apache-2.0 and attribution
 python scripts/run_repo_checks.py
 ```
 
-The recorded result is **10 PASS / 0 FAIL** across reference integrity, licenses and fonts, context budgets, source coverage, showcase hashes and render specifications, four regression suites, and Python syntax. See the [recorded summary](examples/repository-check-2026-08-02.txt).
+The 2026-10-20 repository run records **16 PASS / 0 FAIL**, covering references, workflow handoffs, licenses and fonts, context budgets, source coverage, showcase integrity, model and valuation behavior, charts, report content and layout, and Python syntax. See the [run summary](examples/repository-check-2026-10-20.txt).
 
 The local installer path was also exercised: `npx skills add . --list` found exactly one skill, `public-investment-analysis`.
 

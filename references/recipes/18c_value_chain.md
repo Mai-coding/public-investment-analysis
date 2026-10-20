@@ -1,8 +1,8 @@
-# Recipe 18c — Value Chain Deep Dive (§2.8)
+# Recipe 18c — Value Chain Deep Dive (§3.8)
 
 > Load this self-contained recipe only when writing the named section; no legacy collection is required.
 
-## 配方三：价值链全景（升级 §2 的上下游小节）
+## 配方三：价值链全景（升级 §3 的上下游小节）
 
 **目标**：从"罗列上下游玩家名单"升级为"读者看懂钱在链条上怎么分"。
 

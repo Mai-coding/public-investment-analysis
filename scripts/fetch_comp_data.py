@@ -2,7 +2,8 @@
 fetch_comp_data.py - 拉研究对象实时市场数据 + SEC 文件（yfinance 一线通道）
 
 口径纪律（与 skill 一致）：
-  - 只产出 forward P/E 与 forward P/S —— **不抓取、不打印 EV/EBITDA、EV/Sales**（skill 明令禁用）。
+  - 只产出 forward P/E 与 forward P/S；行业适用的其他指标（EV/EBITDA、P/TBV、P/AFFO 等）
+    按 references/05_valuation_methodology.md 从 IR/专业数据/研报补齐。
   - forward P/S = market cap ÷ 次年收入预测（Ticker.revenue_estimate 的 '+1y' avg）。
   - 市场数据一线走 yfinance；字段缺失时再用公司 IR/最新财报、专业数据 MCP、用户研报兜底。
 
@@ -48,7 +49,7 @@ def _estimate_next_year(ticker_obj, attr):
 
 
 def fetch_yfinance(tickers):
-    """从 Yahoo Finance 拉实时数据（forward P/E + forward P/S，无 EV 类倍数）"""
+    """从 Yahoo Finance 拉实时数据（forward P/E + forward P/S）"""
     import yfinance as yf
 
     results = {}

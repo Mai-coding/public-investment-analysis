@@ -1,124 +1,97 @@
-# 05 - 估值方法论：Forward P/E / P/S 可比 + DCF → 12 个月目标价
+# 05 - 估值方法论：可比主估值与终局参考 → Price Band Decision Map
 
-本 skill 只分析**上市公司**。估值目的是得出一个有依据的 **12 个月目标价 + 相对现价的上行/下行空间** 和 BUY/HOLD/SELL 评级。执行步骤见 `task3-valuation.md`；公开包不附带通用长版估值教材，公式与方法只按本文件及 Task 3 的现行规则执行。
+本 skill 分析上市公司。主估值100%来自可比公司支持的 forward multiples，终局估值仅作零权重参考，并反推现价要求、核验条件。使用有限期限的倍数与总回报关系；不搭建逐年自由现金流折现、加权资本成本或永续增长模型。研究、近期经营预测、财务质量和来源治理保留。
 
-## 核心原则
+核心输出保留 4–5 个 Price Bands、3 年回报、Risk/Reward、Actionability 和改变判断的条件。分别说明 **Market-priced Band（现价计入哪档）** 与 **Evidence-supported Band（证据支持哪档）**。Base midpoint 仅为参考。
 
-1. **倍数偏好 forward P/E 与 forward P/S**——本 skill **不使用 EV/EBITDA、EV/Sales** 等 EV 类倍数。
-2. **正推法，禁止反推**：先观察真实可比 forward P/E / P/S，再套到 target 业绩上算隐含价；绝不先定目标价再回算倍数。
-3. **两条腿走路**：(a) 经角色筛选的可比公司 forward P/E / P/S（多分部用分部 SOTP）→ 隐含股价；(b) DCF → 隐含股价。两者交叉验证后加权出目标价。
-4. **没有私募轮次 dilution、没有 MOIC/IRR、没有入场/退出估值；但上市公司 SBC、期权、摊薄股本与回购必须进入每股价值**——这些是私募/基金口径，本 skill 不用。上市公司用 **目标价 + 上行空间** 衡量回报。
+## 1. 按经济属性选择主指标
 
----
+| 类型 | 默认主指标 | 必须检验 |
+|---|---|---|
+| 银行、净资产可代表经营资本的重资产企业 | P/B；商誉重要时 P/TBV | 可持续 ROE/ROTCE、资产质量、资本约束、融资及摊薄 |
+| 尚未盈利但收入有经济意义的企业 | P/S | 可服务市场、份额、成熟净利率、实现盈利的条件 |
+| 具有代表性利润的其他企业 | P/E | 正常化利润、终局收入与净利率、壁垒持续性 |
 
-## 第 1 步：拉可比公司 forward 数据（带快照日期）
+先判断净资产法是否适用，再判断利润是否有代表性。晶圆厂不能仅凭固定资产多就套 P/B：检查工艺、利用率、经济折旧和维护投入。周期谷底亏损先检查正常化利润，不自动切 P/S。P/S 排除收入总额/净额错配；P/E 不用负数或接近零的分母；负净资产不强套 P/B。无可靠锚就披露无法可靠估值。
 
-每次都重新拉，不要用记忆中的数据。
+REIT 等有明确行业经济指标时保留 P/AFFO、P/NAV；多分部可 SOTP。其他倍数仅作有理由的交叉检验，不凑方法数量。直接采用整体股权P/E、P/S、P/B时，不再扣一次净债务或额外加现金；若明确使用剔除现金收益的核心盈利倍数，按第4节单列现金桥；EV 指标如确需采用，明确 EV→股权桥、租赁和少数股东口径。
 
-**数据源优先级**：**一线走 Yahoo Finance / yfinance**。若 forward 收入、EPS 或倍数缺失，依次用公司 IR/最新财报自行计算、专业数据 MCP、用户研报 consensus 兜底。工作底稿与 Source Ledger 写明实际渠道和快照日期；最终 DOCX 使用数字上标。
+## 2. 主估值：Forward Comps 100%
 
-yfinance 一线通道（可直接跑 `scripts/fetch_comp_data.py`）：
+当前及预测市场快照按来源层级刷新。筛选至少 3 家经济属性相近的中央可比，比较商业模式、资本强度、成熟度、利润率/ROE、客户结构和增长持续性；异质全样本中位数只作零权重诊断，多分部用有依据的分部锚。每种主指标给中央子样本区间/中位数与目标公司的溢折价理由，不能由想要的价格倒推。龙头溢价的证据、可比内已含优势和避免重复加价按`06_comp_analysis_workflow.md`处理。
 
-```python
-import yfinance as yf
-for ticker in comp_tickers:
-    s = yf.Ticker(ticker); info = s.info
-    forward_pe   = info.get('forwardPE')       # forward P/E
-    forward_eps  = info.get('forwardEps')
-    market_cap   = info.get('marketCap')
-    # ⚠️ 次年收入预测不在 .info 里（info.get('revenueEstimate') 恒为 None，forward P/S 会静默失败）
-    # 必须用 Ticker.revenue_estimate 属性（DataFrame，'+1y' 行 = 次年预测）：
-    rev_est      = s.revenue_estimate          # index: 0q/+1q/0y/+1y
-    rev_next     = rev_est.loc['+1y']['avg'] if (rev_est is not None
-                       and not rev_est.empty and '+1y' in rev_est.index) else None
-    forward_ps   = market_cap / rev_next if (market_cap and rev_next) else None
-    rev_growth   = info.get('revenueGrowth')   # backward TTM 增速，仅参考；forward 增速用 rev_next/totalRevenue−1
-    # 不取 EV / EBITDA / EV-EBITDA（本 skill 不用）
+按统一 N+1（或有理由的 N+2）年度，将 peer-anchored P/E × 预测 EPS、P/S × 预测每股收入、P/B × 预测每股净资产转换为价格区间；同年度口径与摊薄股数来自 Task 2。每个经营情景都有对应指标和有依据的可比倍数，不能只复制一套固定价格折扣。最新披露 P/B 若替代 forward，必须标 Diagnostic，不冒充同年中央预测；缺可靠 forward book 时先补足或披露主估值未完成。
+
+Manifest 的 `Method Family` 为 `Forward Comps`、`Terminal` 或 `Diagnostic`。Forward Comps 的 Central 权重合计 **1.00**；Terminal 必须为 `Role=Diagnostic`、`Weight=0`，其他诊断也为零。可比族内有理由时可细分，终局不参与主价格区间、Base中点或入场价的加权。缺可靠可比输入时停止最终主估值；缺终局输入则标参考未完成及原因，不用终局替代可比，也不阻断已有依据的主估值。
+
+同一经营情景的主估值 low/mid/high 等于相应可比结果。在 `Valuation Summary` 的 `Band Valuation Bridge` 保留 Case、Comps Low/Mid/High、Terminal Low/Mid/High、Central Low/Mid/High；Terminal列为零权重参考，缺失时可标n.a.。Central三端须与Comps逐项相等，不允许终局输入通过公式进入主价格带。终局与可比显著分歧时解释期限、盈利定义和资本差异，不平均消除分歧，也不倒校可比倍数。
+
+## 3. 零权重终局参考：延续经营预测
+
+市场快照和可比遵守 `01_source_hierarchy.md`、`06_comp_analysis_workflow.md`。当前/近期主倍数采用同一明确基期（通常 N+1）；P/B 基数标明最新披露或同年预测；用于主估值的中央倍数须满足前述同年 forward 口径，不伪造数据。
+
+先独立完成经营延续参考，再反推现价。默认从Task 2显性期末延续：各业务按自身增长依据逐年滚动，随成熟度逐步减速后相加，利润率、再投资、营运资本、现金和股本同步衔接。TAM×份额仅检查规模合理性，不重设收入终点；资产型企业衔接资本与可持续ROE。若采用其他终局方法须说明理由和与经营模型的差异。观察年仍高增长时，明确它不是永续稳定状态；不因年份较远就称已成熟。
+
+`Terminal Cases` 位于原工作簿，记录 Case、Metric、Base Year、Current Price、Horizon、Required Return、Exit Multiple、Terminal Total、Terminal Shares、Distributions FV、Terminal Cash、Cash Treatment、Supported Price、Implied Terminal Total、Basis。每行按 `19_model_provenance_and_consistency.md` 记录来源、日期、定位和推导。
+
+延续计算在原工作簿中链接Task 2末年，复用同一经营构建，不复制独立模型。减速幅度及费用/资本强度的保持或变化均须有依据；不把某家公司年份、增长率或净利率写成通用默认。
+
+## 4. 终局正推与反推：统一有限期限关系
+
+Terminal参考情景采用共同终局观察年，H 为距估值快照的年数；H 不等于三年持有期。要求回报 h 是投资门槛，不是已观察到的市场折现率。退出倍数 M_H 从成熟可比的质量、资本回报、增长余量及风险独立锚定，历史分位仅作诊断；不得由想要的价格反算。少量 H、h、M_H 情景均须有依据，不默认所有市场适用 10%。
+
+令X_H为终局所选总量，S_H为终局摊薄股数，D_H为每股当前股份收到的中间股息等外部分配在H年的累积值；C_H为需单列的终局现金股权调整总额（已扣必要运营现金及债务，可为负），整体股权倍数已含现金时C_H=0：
+
+```text
+V_H = (X_H × M_H + C_H) / S_H
+今天可支持价格 P* = (V_H + D_H) / (1+h)^H
+现价要求终局总量 X_implied = {[P0 × (1+h)^H − D_H] × S_H − C_H} / M_H
+当前倍数隐含要求：将 P0 = 当前倍数 × 同基期每股指标代入上式。
 ```
 
-`rev_next` 拉不到时（小盘股/A股/港股常见），按 fallback：研报 consensus（标 User-provided-unverified）→ 自算（最新季报年化 × 增速假设，标 Assumption）。
+这是终局售价与持有期回报映射，不声称当前 multiple 唯一识别市场共识。H、h、退出倍数、分配均须展示，反推称“在这些假设下支撑现价的要求”。反推总量以零为下限；若现金与分配已覆盖门槛，说明无需正经营退出价值，不解释为负市场规模。计算可用 `scripts/terminal_multiple.py`；Excel 使用相同公式，图表只读模型输出。
 
-A 股 / 港股：东方财富 / 巨潮 / HKEx（+ 用户研报的 forward 预测）。
-记录数据快照日期段落（实际渠道 YYYY.M.D 美股；东方财富 YYYY.M.D A 股；HKEx YYYY.M.D 港股；研报机构 YYYY.M.D forward 预测）。
+- P/E：反推净利润，再除以可持续净利率得收入、除以行业收入得份额。
+- P/S：反推收入，再核验成熟利润率。到 H 已成熟盈利时，退出 P/S 可由成熟 P/E × 成熟净利率得到；两者为同一估值，不可重复作为独立 Central 方法加权。
+- P/B：反推净资产，结合可持续 ROE 得净利润；或固定可融资资本路径，求所需退出 P/B/ROE 条件组合。P/B 本身不唯一决定 ROE。检查留存利润、分红、资本补充与 S_H 一致，不把新股东投入免费算给原股东。
 
-## 第 2 步：可比统计 + 套用倍数
+D_H 不得悄悄取零：采用简单有依据的分配假设，或标“零分配保守简化”及影响；分配重要时做敏感性。分红尊重现金与资本约束，不能全额分红又靠同一利润扩张净资产。S_H 纳入 SBC、期权、回购和必要融资；回购影响每股价值后不再计入 D_H。超额现金只能计一次；成功概率和等待时间分开，不重复惩罚同一风险。
 
-- 每家公司先分类为中央主锚、次级诊断、硬件/估值下限或期权参照，并比较业务模式、资本强度、成熟度、利润率与客户结构。
-- 全样本 **max / 75th / median / 25th / min** 必须保留；异质样本统计只能作零权重诊断。
-- 只有至少三家经济属性相近的中央子样本，才可使用其 low/median/high 倍数。多分部 target 必须按分部选择可比锚并做 SOTP。
-- 套到 target（来自 Task 2 模型的预测）：
-  - 隐含价(P/E) = target 次年预测 EPS × 选定中央子样本 forward P/E
-  - 隐含价(P/S) = Σ（target 分部次年预测收入 × 对应分部 forward P/S）/ 摊薄股数
-- P/E 与 P/S 两条结果交叉验证；若分歧大，说明利润率与同业差异，需用陈述句解释取舍。
+现金处理必须二选一：`Cash Treatment=Included`表示整体股权倍数，`Terminal Cash=0`；`Separate`表示核心盈利倍数加独立现金调整，P/E分母先剔除对应税后利息并保留持续SBC，再加现金、合格金融投资减债务及运营储备。核心倍数须匹配剔现金定义，或明确近似及局限；不能无说明移用含现金的P/E。融资应收款不是现金。`Terminal Cash`是公司总额，不能塞入每股`Distributions FV`；现金已分配则从期末余额扣除。经营预测已承担研发、资本开支和营运资本，不能再扣同一笔再投资；对尚未明确用途的额外现金，可声明未来公允价值再投资净现值为零，不预先奖励再投资收益，也不对所有公司假设无限留存。
 
-## 第 3 步：相对增速调整（forward PEG，可选）
+跨年份比较统一观察时点与回报门槛。分别列公司整体股权现值、每股现值及每股现值×较早年份股数的原股东等值；持续摊薄时三者不可混用。终局现金与分配桥随经营路径更新，反推采用同一套定义。
 
-当 target 与可比的 forward 增速差距大时，用 forward PEG 对齐：
-```
-PEG = 可比 forward P/E / 可比 forward 增速(%)
-Target forward P/E = PEG × Target forward 增速(%)
-```
-仅在 target 与可比成熟度接近时有意义；差距过大时以 DCF 为主。
+## 5. Price Bands 与方法清单
 
-## 第 4 步：DCF 交叉验证
+保留 Upside/Re-rating、Base+、Base、Disappointment、Thesis Impairment 等 4–5 档，按经营断点调整。各档100%来自同情景forward comps，列 `业务事件 → 预测每股经营指标 → 预期变化 → 可比倍数与价格`；终局只解释长期合理性与条件要求。盈利增长可能消耗剩余空间，不机械叠加盈利增长和倍数扩张。
 
-按 `task3-valuation.md` 做 DCF（WACC、终值、折现 → EV → 减净债 → 股权价值 ÷ 摊薄股数 → 隐含股价）。检查终值 < EV 的 60-70%。
+`Terminal Cases` 情景区间可重叠；`Price Band Map` 为行动价格区间，按有依据的断点排列，不能把重叠情景强行一一对应，不能为了覆盖现价扩大估值。现价在带外或间隙时标 Above/Below/Between。市场隐含经营要求由反推表解释，不以价格位置证明公司已实现该状态。
 
-## 第 4.5 步：Reverse DCF —— 市场已 price in 什么（强制）
+保留原 band 字段，增加 `Evidence Status`、`Evidence Ref`。E/Multiple 拆分为算术解释；P/S/P/B 改用适用每股基数。股本、分配、期限或门槛变化另列贡献，不把所有残差归 multiple。价格带、Base midpoint 和 football field 均读取 Manifest Central 的模型来源。反推与同一估值的代数改写是零权重 Diagnostic；一种有依据的可比主指标足够就不凑数；不把不同情景作为独立方法平均。终局参考单独标零权重，不进入中央football field。
 
-DCF 建好后，把它倒过来用：固定 WACC 与终值方法，从**当前股价**反解出"要支撑现价需要怎样的收入 CAGR × 终端利润率组合"，并与自己的 Base 判断对照（输出 §11.3 的 priced-in 对照表，格式见 `sections/03c_valuation_sections_11_12_15.md` §11.3）。
+## 6. 条件验证与两种定位
 
-- 这比"目标价 vs 现价"更有判别力：它直接回答**当前价格买入实际是在赌什么**。
-- 结论必须落到 variant view：我与市场的分歧在哪个变量、置信度多高、什么数据能验证。
+在 `Valuation Summary` 增加 `Condition Evidence`：
 
-## 第 5 步：三情景目标价（Bull / Base / Bear）
+| Band | Condition | Threshold | Current Evidence | Evidence Date | Source / Locator | Status | Decisive | Next Signal |
+|---|---|---|---|---|---|---|---|---|
 
-不是退出 MOIC，而是三档**目标价**。每档组合两个变量：
-1. 业绩（收入 / EPS）：保守 / 基准 / 乐观
-2. 倍数区间：选定中央子样本或分部锚的 low / base / high；禁止用异质全样本分位
+Status = Supported / Partial / Unverified / Contradicted；Decisive = Yes/No。复用已有研究，Threshold 可观察且有时间窗口。未来终局未实现不等于失败，区分领先证据与结果。缺证据保持未知，不把管理层愿景填为 Supported。
 
-| 情景 | 业绩 | 中央倍数区间 |
-|------|------|----------|
-| 保守 | 偏低 | 选定中央锚 low |
-| 基准 | 中位（与卖方/研报一致）| 选定中央锚 base |
-| 乐观 | 偏高 | 选定中央锚 high |
+同页 `Decision Position` 两行：`Market-priced Band`、`Evidence-supported Band`，各含 Band、Confidence、Rationale。前者为价格位置与反推要求，后者为独立研究裁决；可用 Mixed/Unresolved。逐带 Evidence Status 汇总证据，Evidence Ref 定位条件表行/来源。决定性条件被反证，不能靠其他利好多认定该档受支持；若反证不适用，先解释并修正底稿。
 
-## 第 6 步：reconcile → 目标价 + 上行空间
+Robustness 衡量推演稳定性，Confidence 衡量证据把握，发生概率另行表达；不互换，不强制精确概率。
 
-- 在 `Valuation Method Manifest` 登记所有方法；只给 Role=`Central` 的 DCF/可比/SOTP 分配权重，Diagnostic 权重为0，得到 low/base/high 与加权目标价。
-- 上行空间 = 目标价 / 现价 − 1。
-- **评级由上行空间决定**（映射表见 `08_scoring_framework.md`）；第 15 章评分作交叉支撑，冲突时以上行空间为准并解释分歧。
-- 输出推荐：现价、12 个月目标价、上行/下行%、评级（BUY/HOLD/SELL）、priced-in 对照结论（第 4.5 步）、方法权重、3-5 个催化剂、3-5 个对目标价的风险。
+## 7. 稳健性与实际行动
 
-## 第 7 步：敏感性表
+逐带 challenge 一次：Causality、Magnitude、Timing、Market Pricing、Counterforces，输出 High/Medium/Low 与修正记录。极端条件叠加为 Low 尾部压力，不是普通 Bear。
 
-固定基准业绩，看不同 forward P/E / P/S 分位对目标价与上行空间的影响：
+Distance：Low = 已有条件或 1–2 个正常季度证据可支持；Medium = 需要明显经营验证/重估；High = 需要多项重大突破或 thesis 改变。波动可越过任何带，Distance 不是到价时间预测。
 
-| 中央倍数情景 | 隐含目标价 | 上行空间 | 评估 |
-|---------|-----------|---------|------|
-| Selected low | ... | ... | 偏保守 |
-| Selected base | ... | ... | **基准** |
-| Selected high | ... | ... | 偏乐观 |
+每档给 Actionability、条件和上/下调信号。下跌先更新证据再判断加仓，上涨先看终局是否上修再判断减仓。Thesis 破坏后的低价只能 Conditional/Avoid，下沿不保证托底。Attractive entry 是证据仍支持 thesis 且达到声明门槛的最高买价，不机械取 Base 折扣；仓位还受组合集中度与可承受损失约束。
 
-让读者清楚看到：目标价对倍数假设的敏感程度。
+## 8. 三年回报与最终结论
 
-## 第 8 步：结论必须明确
+保留 `3Y Return Bridge`。三年退出经营基数来自 Task 2，退出倍数反映届时剩余终局空间，不能把 H 年终局提前搬到第三年。退出价格与实际分配时点计算总回报：可用逐笔现金收益率，或声明分红再投资约定后算终值 CAGR。每股基数 CAGR + 股东收益率 + 年化倍数变化仅为近似解释，最终值须按总回报核对。P/S/P/B 使用每股收入/账面值，无正盈利不强算 EPS CAGR；回购不重复计。
 
-明确给出：基准目标价与上行空间；要让上行空间转正/达标需要多大倍数或业绩假设；当前是 BUY/HOLD/SELL。不要写"估值合理"这种含糊话。
-
-## 常见错误（必须避免）
-
-1. **反推法**：先定目标价再算倍数。
-2. **stale 数据**：用记忆中的市值；必须每次重新拉。
-3. **混淆 forward 与 backward growth**：估值看 forward。
-4. **用 EV/EBITDA 或 EV/Sales**：本 skill 一律用 forward P/E / P/S。
-5. **不做敏感性**：必须展示倍数假设的影响范围。
-6. **P/E 与 P/S 互相矛盾却不解释**：必须说明利润率差异。
-7. **异质全样本中位数作中央锚**：全样本统计只作诊断；中央子样本至少三家相近公司，多分部走SOTP。
-
-## 业绩预测的拍法（次年 / 预测期）
-
-```
-预测 EPS 或收入 = 预计市场规模 × 预计市场份额 × 预计净利率（或单价×销量）
-```
-每个变量给保守/基准/乐观三档，并标 Assumption + 区间 + 理由 + 敏感性（口径见 `01_source_hierarchy.md`）。
+至少展示 Base 与 Disappointment。结论包括两种 band 定位及 Confidence、Expected 3Y Return、Risk/Reward、Actionability、Attractive entry 和 2–3 个可观察更新信号。评级仍为 secondary；详细公式与来源进入底稿/Methods Appendix。

@@ -32,6 +32,10 @@ Step 6: 写成 Markdown 摘要 + 集成到主报告附录
 - 上市可比固定 4-5 家
 - 中位数计算时剔除两端 outlier（pre-revenue 公司、distressed 公司）
 
+### 龙头溢价与总估值调整
+
+评价标的是否具备可持续的行业地位，并以增长持续性、客户黏性、竞争位置、盈利/现金质量与风险解释溢折价。优先参考同日同口径的同行交易差异和可靠行业估值研究；缺少可识别的量化基准时，给有理由的区间并标研究假设，不杜撰固定“行业标准”。可比样本本身可能已含龙头，规模或产品排名不自动等于可加价；既有增长/质量/情景调整中已体现的优势不再叠加。把可比锚、净溢折价和最终倍数分别列示，说明证据变弱时如何收敛；三年退出及更远观察年分别判断剩余溢价，不机械沿用近期比例。不得将某次案例的15%或其他固定百分比设为跨行业默认。
+
 ## Step 2: 拉实时市场数据（Yahoo Finance / yfinance 一线；forward 优先）
 
 **一线：yfinance**。每次重新拉实时价格、市值、forward 收入/EPS、forward P/E 与 forward P/S，并记录快照日期。
@@ -61,10 +65,8 @@ revenue_growth_yoy = info.get('revenueGrowth')      # backward YoY，仅参考
 # 计算 forward P/S
 forward_ps = market_cap * 1e9 / revenue_next_year if revenue_next_year else None
 
-# 不用以下字段（本 skill 偏好 forward P/E / P/S，不用 EV 类倍数）
-# ev = info['enterpriseValue']   ← 不用
-# ebitda = info['ebitda']         ← 不用
-# ev_to_ebitda                    ← 不用
+# 其他行业指标（EV/EBITDA、EV/FCF、P/TBV、P/AFFO 等）按 05 的行业表选用；
+# yfinance 的 enterpriseValue/ebitda 为 trailing 口径，forward 值需 IR/专业数据/研报补齐并记录来源
 ```
 
 **关键 4 字段**：

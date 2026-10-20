@@ -2,65 +2,36 @@
 
 ## Purpose and prerequisites
 
-Value the listed company using DCF plus forward P/E and forward P/S and produce a defensible 12-month price target, upside/downside and BUY/HOLD/SELL rating.
+Anchor 100% of central valuation to comparable-company forward multiples; retain operating-continuation terminal cases as zero-weight references; reverse the current price into conditional terminal requirements, and distinguish **Market-priced Band** from **Evidence-supported Band**. Preserve 4–5 Price Bands, 3Y return and conditional actionability. Policy and formulas are owned by `05_valuation_methodology.md`.
 
-Task 2 workbook must exist and contain linked projections, FCF, net debt, diluted shares and scenarios. Do not build a placeholder valuation.
+Task 2 workbook must contain linked statements, scenarios, per-share metrics, common equity, capital and diluted-share bridges. Do not fabricate prerequisites. Load only Task 3 bootstrap in `task_load_map.json`; refresh comps under `06_comp_analysis_workflow.md` when needed.
 
 ## Deliver only
 
 1. `[Target]_Valuation_Analysis_[Date].md`.
-2. DCF, sensitivity, comps and valuation-summary tabs added to the existing Task 2 workbook. Do not create a second workbook.
-
-## Load
-
-Read the Task 3 bootstrap references in `task_load_map.json`. `05_valuation_methodology.md` owns valuation policy; `19_model_provenance_and_consistency.md` owns the Manifest and consistency. Load `06_comp_analysis_workflow.md` only when the comp set or market snapshot must be refreshed. No generic valuation textbook is required or bundled.
+2. `Terminal Cases`, `Implied Expectations`, `Sensitivity`, `Comps` and `Valuation Summary` tabs in the existing Task 2 workbook. No second workbook.
 
 ## Step 0 — Option-bucket litmus test
 
-First value the visible operating business conservatively. Calculate the gap between quoted value and this operating value.
-
-- Gap roughly ≤20–25%: use the normal single-layer DCF + forward-multiple framework.
-- Large gap tied to identifiable, binary, long-duration projects with separately anchorable TAM and mature exit multiples: use an operating SOTP plus explicit option buckets.
-- Large gap without separable, sourceable projects: do not invent option precision; revisit operating assumptions or express uncertainty through scenarios/sensitivities.
-
-Record the conclusion and inputs. Success probability and time discounting are separate; do not hide delay inside probability. Precedent/sentiment anchors remain diagnostic.
+Conservatively value the visible business using 100% forward comps, with terminal results shown separately at zero weight, then compare quoted equity value with it. Gap roughly ≤20–25%: normal single-layer framework. A large gap warrants checking separately sourceable long-duration projects. Under the100% comparable policy, option buckets remain zero-weight references and do not widen central bands; comparable-anchored operating SOTP may still sit within the forward family. An unexplained gap is not permission to invent projects. Keep probability and waiting time separate; prevent duplicated projects and retain §12.8 source/assumption tables.
 
 ## Core work
 
-### 1. Pull model outputs
-
-Green-link projected revenue, EPS/net income, UFCF, tax, D&A, CapEx, NWC, net debt and diluted shares from Task 2. Do not hardcode a second forecast in the valuation tabs.
-
-### 2. DCF
-
-Build WACC, terminal value, present value, EV-to-equity bridge and per-share value. Run WACC/growth sensitivities and sanity-check terminal-value share of EV.
-
-### 3. Forward trading comps
-
-Use global public comps selected for economic similarity. Use forward P/E and forward P/S only; do not use EV/EBITDA or EV/Sales as trading-multiple anchors. Clearly separate Central and Diagnostic roles. Multi-segment companies may use segment-specific SOTP anchors.
-
-Record the exact next fiscal year, market snapshot date, source and selected multiple rationale. Do not start from a desired target price and back-solve a multiple.
-
-### 4. Reverse DCF and scenarios
-
-Show what current price implies for growth/margin/FCF and compare it with the analyst view. Build Bear/Base/Bull business-event chains with linked model outputs, valuation assumptions, catalysts and risks.
-
-### 5. Reconciliation and rating
-
-Create `Valuation Method Manifest` in `Valuation Summary`. Only Central methods may have positive weight or enter the football field and target price. Reconcile to a 12-month target price and apply the rating thresholds in `08_scoring_framework.md`.
-
-Public-company SBC/options and diluted shares must flow into per-share value. Only private-round dilution/MOIC logic is excluded.
+1. **Link inputs.** Read Task 2 `Valuation Inputs`: revenue, normalised net income/EPS, common equity/TBV, cash, debt, dividends, buybacks and diluted shares. Preserve the operating model. Extend the operating endpoint into a zero-weight terminal reference under the rules in `05_valuation_methodology.md`.
+2. **Forward comps (100%) and terminal references (0%).** Select the suitable forward metric, retrieve at least 3 economic peers and justify the multiple premium/discount; multiply Task 2 same-year per-share metrics. Follow policy P/B→P/S→P/E applicability. Form terminal references by continuing the operating endpoint; use market/share only as a scale check. Explain any alternative method. Source assumptions and test capital/dilution. Record canonical `Terminal Cases` fields and freeze research cases before reverse pricing.
+3. **Forward and reverse mapping.** Use common observation year, hurdle scenarios, mature exit anchors, distributions and future shares. Use `scripts/terminal_multiple.py` or identical Excel formulas. `Implied Expectations` compares current-price requirements with independent cases in revenue, share, margin, net income or book/ROE terms. Do not treat current multiple as a unique market forecast, or reuse an elevated current multiple as a mature anchor without evidence.
+4. **Evidence and positioning.** Populate `Condition Evidence` from Task 1 with observable/time-bound threshold, dated source locator, status, decisive flag and next signal. Adjudicate Evidence-supported Band and Confidence independently of price. `Decision Position` records both positions and rationale; Robustness/counting favourable conditions cannot substitute for judgment.
+5. **Price Bands.** Build 4–5 bands at economic breaks; overlapping case intervals stay in `Terminal Cases`. Each band has causal chain, metric/multiple decomposition, Required Conditions, Key KPIs, Evidence Status, Evidence Ref, Distance, Robustness and conditional Actionability. Challenge/revise once. Disclose prices outside/between bands instead of stretching them.
+6. **Manifest and returns.** Maintain `Valuation Method Manifest`: Central weights must sum to Forward Comps=1.00; Terminal must be Diagnostic with zero weight; reverse diagnostics and equivalent P/S/P/E expressions have zero weight. `Valuation Summary` includes `Price Band Map`, `Condition Evidence`, `Decision Position`, `Band Valuation Bridge` (same-case Central endpoints equal forward comps; terminal columns are references), `3Y Return Bridge`. Append `Evidence Status | Evidence Ref` to existing band columns. Compute Base and Disappointment 3Y total return from third-year operating cases, exit prices and distributions; the additive component bridge is approximate.
 
 ## Gate
 
-After adding valuation tabs, run:
+Run this task's checks in [Stage gates](23_workflow_and_state.md#stage-gates).
 
-```text
-python scripts/artifact_audit.py --excel <model_with_valuation.xlsx>
-```
-
-Fix all FAILs. Confirm that changing a model driver propagates through DCF/comps/scenarios/target price.
+Fix all FAILs. Flex a terminal growth/margin/cash input and dilution: verify reference value and inverse requirements update while central bands and entry prices remain unchanged. Flex comparable premium and near-term earnings separately to verify central sensitivity, bands and returns update. Separately flex a Task 2 driver through the 3Y bridge. Confirm any market/evidence disagreement is explicit; structural checks cannot prove industry judgments.
 
 ## Handoff
 
-Record target price, rating, current price/snapshot date, central methods/weights, diagnostic methods, scenario prices/probabilities, option-bucket conclusion, key sensitivities and audit result in `handoff_task3.json`.
+Record 100% forward/0% terminal weights, same-case central intervals and separate terminal references, snapshot, selected metric/rationale, base year, horizon/hurdle/exit/distribution/share assumptions, implied requirements, Price Band Map, both positions and confidence, decisive evidence gaps, Attractive entry, Base/Disappointment 3Y returns, method roles, option-bucket conclusion, update signals and actual audit result in `handoff_task3.json` under the common schema. A PASS Task 3 handoff must include its `valuation_assessment` object. Rating is secondary.
+
+Validate the versioned handoff under [Handoff and reuse](23_workflow_and_state.md#handoff-and-reuse) before offering it to the next task.

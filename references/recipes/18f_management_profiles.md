@@ -27,7 +27,7 @@ After the profiles, analyze responsibility boundaries, succession, board oversig
 
 ## 4. Guidance credibility
 
-Place the latest five-call guidance evolution in §9, not §3. Separate short-cycle quarterly guidance from long-term targets, explain misses/beats, and map credibility into forecast ranges and valuation confidence.
+Place the latest five-call guidance evolution in §9, not the technical introduction. Separate short-cycle quarterly guidance from long-term targets, explain misses/beats, and map credibility into forecast ranges and valuation confidence.
 
 ## 5. Photos
 

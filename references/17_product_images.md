@@ -2,6 +2,14 @@
 
 This file is the sole owner of product-image sourcing and insertion. Full-report §4 must contain **2–3 real product/asset images**; data charts do not count.
 
+## Cover company logo (required for final reports and covered quick memos)
+
+Collect the target company’s genuine logo during Task 1: prefer the company’s official brand/media page or IR material, then a user-provided official asset. Record source ID, exact URL/file and page, retrieval date, rights status and local asset path in the source ledger/handoff. Verify the mark belongs to the target company; do not use a broker logo or generate/redraw a brand mark.
+
+Embed it on the first page as an actual DOCX image, preserve aspect ratio and readable resolution, and set the image description to `COMPANY_LOGO: <company name>`. Use a transparent/white-background official variant suited to the page. A text name, placeholder box, empty relationship or hotlink does not count. Source it with a superscript number resolving in Sources; methods and download metadata stay backstage.
+
+The logo does not count toward §4’s 2–3 product/asset images. If no reliable asset can be retrieved, report the specific missing asset and request it; preserve the draft, but do not declare the final cover complete. Layout is owned by `21_report_editorial_style.md`.
+
 ## What qualifies
 
 - product/package/board/device photo;

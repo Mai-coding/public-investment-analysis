@@ -22,7 +22,7 @@
 - **信息冲突时必须显式说明**，并统一时间口径、地域口径、市场口径
 - **若发现新信息影响前文结论**，必须更新前文，不得只在后文补充
 - **市场预测 vintage**：第三方市场规模/增长/渗透率等**预测**数据优先用**发布日期 ≥ 2025-01-01** 的版本，引用必标报告发布日期；旧 vintage（2024 及更早）仅在确无更新版本时用，并显式标 stale + 说明。
-- **建模假设须锚一手披露**：每个价格/单价/利润率假设先在一手 filing 找锚（10-K 常披露 hub 价/实现价/全成本/对冲均价/清算量价）再 calibrate；calibrate-to-guidance 须标为 plug。详见 `task2-financial-modeling.md`。
+- **建模假设须锚一手披露**：有充分量价披露时才采用量价拆分；缺失或口径不足时直接用增长率、占比或利润率，不虚构数量/单价。各实际采用的假设先从一手 filing 的历史数据或指引找锚，额外判断标为 Assumption；calibrate-to-guidance 须标为 plug。详见 `task2-financial-modeling.md`。
 - **最终来源名必须可定位**：研究工作底稿、模型 Comments、`source_ledger.json` 和 Sources Appendix 必须保存准确文件名或网络文章名、发布方、日期、URL/本地路径及页码/Item/章节/时间戳。**最终 DOCX 正文不展开这些信息，只用数字上标，格式以 `20_citation_and_source_appendix.md` 为准。**`research estimate`、`company commentary`、`filing`、`web research` 只能描述判断性质，不能作为唯一 Source。
 - **申报文件按用途引用**：S-1/F-1 支持上市前业务、风险与拟议条款；424B4 是最终招股说明书，最终发行价、发行股数、承销、募资、超额配售和锁定期优先引用 424B4；10-K 支持年度经审计数据；10-Q 支持最新季度变化；8-K 支持重大事件和附件。后续修订/定期报告与早期文件冲突时，使用更新文件并解释差异。
 - **Derived 数字写推导链**：同时给准确原始来源、定位信息、分子、分母、公式、年份和单位；不得只写“作者测算”。完整模型字段见 `19_model_provenance_and_consistency.md`。

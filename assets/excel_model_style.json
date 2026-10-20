@@ -1,0 +1,9 @@
+{
+  "font": {"name": "Arial", "body_pt": 8, "heading_pt": 10, "allowed_body_pt": [8, 9, 10]},
+  "colors": {"background": "FFFFFF", "heading": "00355F", "heading_text": "FFFFFF", "subtotal": "E8F3DA", "forecast_emphasis": "D5ECFF", "input": "0000FF", "formula": "000000", "cross_sheet": "008000", "error": "FF0000"},
+  "widths": {"label": 35, "unit": 8, "period": 10, "spacer": 1.5, "comments": 80},
+  "row_height": {"body": 13.5, "heading": 16},
+  "number_formats": {"amount": "#,##0;(#,##0);\"-\"", "decimal": "#,##0.0;(#,##0.0);\"-\"", "percent": "0%", "precise_percent": "0.0%"},
+  "show_gridlines": false,
+  "layout": "Aligned historical/forecast periods, compact indented rows, sparse horizontal rules; retain existing tab architecture and source governance. Freeze headers and labels on multi-period sheets. Do not copy reference content or hidden columns."
+}
